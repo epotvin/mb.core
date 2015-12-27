@@ -1,0 +1,20 @@
+{
+  "name": "mb.core",
+  "description": "Meta Burger Core",
+  "version": "0.0.1",
+  "author": "Emmanuel Potvin",
+  "contributors": [{
+    "name": "",
+    "email": ""
+  }],
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "plugins": {
+    "core": {},
+    "browser": {}
+  },
+  "categories": ["miscellaneous"],
+  "licenses": []
+}
