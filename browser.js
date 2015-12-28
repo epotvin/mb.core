@@ -1,5 +1,5 @@
 define(function(require, exports, module) {
-    main.consumes = ["c9", "util", "Panel", "panels", "ui", "layout"];
+    main.consumes = ["c9", "util", "Panel", "panels", "ui", "layout", "model"];
     main.provides = ["browser"];
     return main;
 
@@ -11,8 +11,9 @@ define(function(require, exports, module) {
         var ui = imports.ui;
         var layout = imports.layout;
 
+        var model = imports.model;
+        
         var Tree = require("ace_tree/tree");
-        var TreeData = require("ace_tree/data_provider");
 
         var markup = require("text!./browser.xml");
 
@@ -72,46 +73,7 @@ define(function(require, exports, module) {
                 cssClass: "filetree"
             });
 
-            var model = new TreeData();
-
-            model.$indentSize = 12;
-            model.getIconHTML = function(node) {
-                var icon = node.isFolder ? "folder" : util.getFileIcon(node.label);
-                if (node.status === "loading") icon = "loading";
-                return "<span class='filetree-icon " + icon + "'></span>";
-            };
-            model.setRoot({
-                children: [{
-                    label: "models",
-                    path: "!domains",
-                    isOpen: true,
-                    className: "heading",
-                    isRoot: true,
-                    isFolder: true,
-                    status: "loaded",
-                    map: {},
-                    children: [],
-                    noSelect: true,
-                    $sorted: true
-                }, {
-                    label: "root",
-                    isFolder: true,
-                    items: [{
-                        label: "test",
-                        isRoot: true,
-                        isFolder: true,
-                        items: [{
-                            label: "sub1"
-                        }, {
-                            label: "sub2"
-                        }]
-                    }, {
-                        label: "test2"
-                    }]
-                }]
-            });
-
-            tree.setDataProvider(model);
+            tree.renderer.scrollBarV.$minWidth = 10;
 
             layout.on("resize", function() {
                 tree.resize();
@@ -125,6 +87,21 @@ define(function(require, exports, module) {
                 if (e.changed && tree)(tree).resize(true);
             });
 
+            tree.setDataProvider(model);
+            
+            var btnTreeSettings = plugin.getElement("btnTreeSettings");
+            var mnuFilesSettings = plugin.getElement("mnuFilesSettings");
+            
+            btnTreeSettings.setAttribute("submenu", mnuFilesSettings);
+            tree.renderer.on("scrollbarVisibilityChanged", updateScrollBarSize);
+            tree.renderer.on("resize", updateScrollBarSize);
+            tree.renderer.scrollBarV.$minWidth = 10;
+            function updateScrollBarSize() {
+                var scrollBarV = tree.renderer.scrollBarV;
+                var w = scrollBarV.isVisible ? scrollBarV.getWidth() : 0;
+                btnTreeSettings.$ext.style.marginRight = Math.max(w - 2,  0) + "px";
+            }
+            
             plugin.panel = viewer;
 
         }

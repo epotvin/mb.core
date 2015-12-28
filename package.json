@@ -12,8 +12,8 @@
     "url": ""
   },
   "plugins": {
-    "core": {},
-    "browser": {}
+    "browser": {},
+    "model": {}
   },
   "categories": ["miscellaneous"],
   "licenses": []
