@@ -13,7 +13,8 @@
   },
   "plugins": {
     "browser": {},
-    "model": {}
+    "model": {},
+    "properties": {}
   },
   "categories": ["miscellaneous"],
   "licenses": []
