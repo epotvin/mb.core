@@ -14,7 +14,11 @@
   "plugins": {
     "browser": {},
     "model": {},
-    "properties": {}
+    "properties": {},
+    "modelEditor": {}
+  },
+  "dependencies": {
+    "jointjs": "0.9.7"
   },
   "categories": ["miscellaneous"],
   "licenses": []

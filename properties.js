@@ -124,7 +124,7 @@ define(function(require, exports, module) {
             grid.renderer.scrollBarV.$minWidth = 10;
 
             layout.on("resize", function() {
-                grid.resize();
+                grid.resize(true);
             }, plugin);
 
             layout.on("eachTheme", function(e) {

@@ -1,0 +1,6 @@
+<a:application xmlns:a="http://ajax.org/2005/aml">
+    <a:bar id="barModelEditor" 
+      style       ="position:absolute;top:0;right:0;left:0;bottom:0" 
+      class       = "modelEditor">
+    </a:bar>
+</a:application>
