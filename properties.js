@@ -1,3 +1,4 @@
+/* global _ */
 define(function(require, exports, module) {
     main.consumes = ["c9", "util", "Panel", "panels", "ui", "layout", "model"];
     main.provides = ["properties"];
@@ -10,6 +11,7 @@ define(function(require, exports, module) {
         var panels = imports.panels;
         var ui = imports.ui;
         var layout = imports.layout;
+        var model = imports.model;
 
         var Tree = require("ace_tree/tree");
         var TreeData = require("ace_tree/data_provider");
@@ -66,54 +68,36 @@ define(function(require, exports, module) {
             viewer = options.aml;
 
             grid = new Tree(container.$int);
-            var model = new TreeData();
-            model.columns = [{
+            var treeData = new TreeData();
+            treeData.columns = [{
                 caption: "Property",
                 value: "name",
-                defaultValue: "Scope",
-                width: "40%",
-                type: "tree"
+                width: "50%",
+                type: 'tree'
             }, {
                 caption: "Value",
                 value: "value",
-                width: "60%"
-            }, {
-                caption: "Type",
-                value: "type",
-                width: "55"
-            }, {
-                caption: "CPU",
-                getText: function(node) {
-                    return (node.cpu || 0) + "%";
-                },
-                width: "50",
+                width: "50%"
             }];
-            model.setRoot({
-                label: "root",
-                items: [{
-                    label: "test",
-                    items: [{
-                        label: "sub1",
-                        value: "Example Value",
-                        type: "50",
-                        cpu: "20"
-                    }, {
-                        label: "sub2",
-                        value: "Example Value",
-                        type: "50",
-                        cpu: "20"
-                    }]
-                }, {
-                    label: "test2",
-                    value: "Example Value",
-                    type: "50",
-                    cpu: "20"
-                }]
+
+            model.on('select', function(e) {
+                var element = e.element;
+                var items = _.map(_.keys(element), function(key) {
+                    return {
+                        label: key,
+                        value: element[key]
+                    };
+                });
+                treeData.setRoot({
+                    label: "root",
+                    items: items
+                });
             });
-            model.getIconHTML = function(node) {
+
+            treeData.getIconHTML = function(node) {
                 return "<span class='dbgVarIcon'></span>";
             };
-            grid.setDataProvider(model);
+            grid.setDataProvider(treeData);
 
             $hookIntoApfFocus(grid, container);
             grid.renderer.setScrollMargin(10, 10);
@@ -129,13 +113,13 @@ define(function(require, exports, module) {
 
             layout.on("eachTheme", function(e) {
                 var height = parseInt(ui.getStyleRule(".filetree .tree-row", "height"), 10) || 22;
-                model.rowHeightInner = height;
-                model.rowHeight = height;
+                treeData.rowHeightInner = height;
+                treeData.rowHeight = height;
 
                 if (e.changed && grid)(grid).resize(true);
             });
 
-            grid.setDataProvider(model);
+            grid.setDataProvider(treeData);
 
             var btnTreeSettings = plugin.getElement("btnTreeSettings");
             var mnuFilesSettings = plugin.getElement("mnuFilesSettings");

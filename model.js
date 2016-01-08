@@ -1,58 +1,73 @@
+/* global _*/
 define(function(require, exports, module) {
-    main.consumes = ["util"];
+    main.consumes = ["Plugin", "fs"];
     main.provides = ["model"];
     return main;
 
     function main(options, imports, register) {
-        var util = imports.util;
+        var Plugin = imports.Plugin;
+        var fs = imports.fs;
 
-        var TreeData = require("ace_tree/data_provider");
+        var model = new Plugin('model', main.comsumes);
+        var emit = model.getEmitter();
+        emit.setMaxListeners(500);
 
-        var model = new TreeData();
-
-        model.$indentSize = 12;
-        model.getIconHTML = function(node) {
-            var icon = node.isFolder ? "folder" : node.icon;
-            if (node.status === "loading") icon = "loading";
-            return "<span class='filetree-icon " + icon + "'></span>";
+        model.root = {
+            name: 'root',
+            instanceOf: 'core.Package',
+            elements: []
         };
-        model.setRoot({
-            children: [{
-                label: "models",
-                path: "!domains",
-                isOpen: true,
-                className: "heading",
-                isRoot: true,
-                isFolder: true,
-                status: "loaded",
-                map: {},
-                children: [],
-                noSelect: true,
-                $sorted: true
-            }, {
-                label: "core",
-                isFolder: true,
-                items: [{
-                    label: "Class",
-                    icon: "brkp_obj_condition"
-                }, {
-                    label: "Element"
-                }, {
-                    label: "Package"
-                }, {
-                    label: "RootElement"
-                }, {
-                    label: "Attribute"
-                }, {
-                    label: "Type"
-                }, {
-                    label: "String"
-                }, {
-                    label: "Number"
-                }, {
-                    label: "Boolean"
-                }]
-            }]
+
+        model.select = function(element) {
+            model.selected = element;
+            emit('select', {
+                element: element
+            });
+        };
+        
+        function loadPkg(path, pkg, callback) {
+            fs.readdir(path, function(err, files) {
+                if (err) return callback(err);
+
+                _.each(files, function(file) {
+                    if (file.name.substring(0, 1) === '.') {
+                        return;
+                    }
+
+                    switch (file.mime) {
+                        case 'inode/directory':
+                            var spkg = {
+                                name: file.name,
+                                instanceOf: 'core.Package',
+                                elements: []
+                            };
+                            pkg.elements.push(spkg);
+                            loadPkg(path + '/' + file.name, spkg, done);
+                            break;
+                        case 'application/json':
+                            fs.readFile(path + '/' + file.name, function(err, data) {
+                                if (err) return callback(err);
+                                pkg.elements.push(JSON.parse(data));
+                                done();
+                            });
+                            break;
+                        default:
+                            done();
+                    }
+
+                    function done(err) {
+                        if (err) return callback(err);
+                        if (files[files.length - 1] === file) {
+                            callback();
+                        }
+                    }
+                });
+            });
+        }
+
+        loadPkg('', model.root, function(err) {
+            if (err) return console.log(err);
+            emit('loaded');
         });
 
         register(null, {

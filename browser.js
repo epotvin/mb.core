@@ -1,3 +1,4 @@
+/* global _ */
 define(function(require, exports, module) {
     main.consumes = ["c9", "util", "Panel", "panels", "ui", "layout", "model"];
     main.provides = ["browser"];
@@ -10,9 +11,10 @@ define(function(require, exports, module) {
         var panels = imports.panels;
         var ui = imports.ui;
         var layout = imports.layout;
+        var TreeData = require("ace_tree/data_provider");
 
         var model = imports.model;
-        
+
         var Tree = require("ace_tree/tree");
 
         var markup = require("text!./browser.xml");
@@ -79,29 +81,40 @@ define(function(require, exports, module) {
                 tree.resize();
             }, plugin);
 
+            var treeData = getTreeData();
+
             layout.on("eachTheme", function(e) {
                 var height = parseInt(ui.getStyleRule(".filetree .tree-row", "height"), 10) || 22;
-                model.rowHeightInner = height;
-                model.rowHeight = height;
+                treeData.rowHeightInner = height;
+                treeData.rowHeight = height;
 
                 if (e.changed && tree)(tree).resize(true);
             });
 
-            tree.setDataProvider(model);
+            tree.on('userSelect', function() {
+                var element;
+                if (treeData.selectedItems[0]) {
+                    element = treeData.selectedItems[0].element;
+                }
+                model.select(element);
+            });
             
+            tree.setDataProvider(treeData);
+
             var btnTreeSettings = plugin.getElement("btnTreeSettings");
             var mnuFilesSettings = plugin.getElement("mnuFilesSettings");
-            
+
             btnTreeSettings.setAttribute("submenu", mnuFilesSettings);
             tree.renderer.on("scrollbarVisibilityChanged", updateScrollBarSize);
             tree.renderer.on("resize", updateScrollBarSize);
             tree.renderer.scrollBarV.$minWidth = 10;
+
             function updateScrollBarSize() {
                 var scrollBarV = tree.renderer.scrollBarV;
                 var w = scrollBarV.isVisible ? scrollBarV.getWidth() : 0;
-                btnTreeSettings.$ext.style.marginRight = Math.max(w - 2,  0) + "px";
+                btnTreeSettings.$ext.style.marginRight = Math.max(w - 2, 0) + "px";
             }
-            
+
             plugin.panel = viewer;
 
         }
@@ -152,5 +165,68 @@ define(function(require, exports, module) {
         register(null, {
             "browser": plugin
         });
+
+        function getTreeData() {
+            var treeData = new TreeData();
+
+            treeData.$indentSize = 12;
+
+            treeData.getIconHTML = function(node) {
+                var icon = node.isFolder ? "folder" : "page_white_cup";
+                if (node.status === "loading") icon = "loading";
+                return "<span class='filetree-icon " + icon + "'></span>";
+            };
+
+            treeData.getChildren = function(node) {
+                if (!node.children && node.element) {
+                    node.children = _.map(node.element.elements, getNodeFromElement);
+                }
+
+                if (node.children && node.children[0]) {
+                    var d = (node.$depth + 1) || 0;
+                    node.children.forEach(function(n) {
+                        n.$depth = d;
+                        n.parent = node;
+                    });
+                }
+
+                return node.children;
+            };
+
+            treeData.hasChildren = function(node) {
+                return node.element && node.element.elements && node.element.elements.length > 0;
+            };
+
+            var root = {
+                children: [{
+                    label: "models",
+                    path: "!domains",
+                    isOpen: true,
+                    className: "heading",
+                    isRoot: true,
+                    isFolder: true,
+                    status: "loaded",
+                    map: {},
+                    children: [],
+                    noSelect: true,
+                    $sorted: true
+                }]
+            };
+
+            model.on('loaded', function() {
+                root.children.push(getNodeFromElement(model.root));
+                treeData.setRoot(root);
+            });
+
+            return treeData;
+        }
+
+        function getNodeFromElement(element) {
+            return {
+                label: element.name,
+                isFolder: element.elements && element.elements.length > 0,
+                element: element
+            };
+        }
     }
 });
