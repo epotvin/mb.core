@@ -85,7 +85,7 @@ define(function(require, exports, module) {
                 var items = _.map(_.keys(element), function(key) {
                     return {
                         label: key,
-                        value: element[key]
+                        value: element[key].name ? element[key].name : element[key]
                     };
                 });
                 treeData.setRoot({

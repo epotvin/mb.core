@@ -214,7 +214,9 @@ define(function(require, exports, module) {
             };
 
             model.on('loaded', function() {
-                root.children.push(getNodeFromElement(model.root));
+                _.each(model.root.elements, function(element) {
+                    root.children.push(getNodeFromElement(element));
+                });
                 treeData.setRoot(root);
             });
 
