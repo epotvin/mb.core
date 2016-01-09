@@ -74,6 +74,7 @@ define(function(require, exports, module) {
 
         function mapElement(location, element) {
             var fullName = (location ? location + '.' : '') + element.name;
+            element.fullName = fullName;
             model.elements[fullName] = element;
             _.each(_.keys(element), function(attribute) {
                 if (element[attribute].instanceOf) {
@@ -93,56 +94,102 @@ define(function(require, exports, module) {
             var attributes = [];
             if (clazz.extends) {
                 _.each(clazz.extends, function(extended) {
-                    attributes.push(getAllAttributes(extended));
+                    attributes = attributes.concat(getAllAttributes(extended));
                 });
             }
-            attributes.push(clazz.attributes);
+            attributes = attributes.concat(clazz.attributes);
             return attributes;
         }
-        
-        function elementsOfType(clazz) {
+
+        model.instancesOf = function(clazz) {
             return _.filter(model.elements, function(element) {
-                return isType(element.instanceOf, clazz);
+                return model.isInstanceOf(element.instanceOf, clazz);
             });
-        }
-        
-        function isType(clazz1, clazz2) {
+        };
+
+        model.isInstanceOf = function(clazz1, clazz2) {
             if (clazz1 === clazz2) {
                 return true;
             }
             if (clazz1.extends) {
                 return _.filter(clazz1.extends, function(extended) {
-                    return isType(extended, clazz2);
-                }).length > 0;   
+                    return model.isInstanceOf(extended, clazz2);
+                }).length > 0;
             }
             return false;
-        }
-        
+        };
+
         loadPkg('', model.root, function(err) {
             if (err) return console.log(err);
-            
+
             // Map elements in model.elements
             _.each(model.root.elements, function(element) {
                 mapElement(null, element);
             });
-            
+
             // Map instanceOf attributes to all elements
             _.each(model.elements, function(element) {
                 element.instanceOf = model.elements[element.instanceOf];
             });
-            
+
             // Link classes extends attributes
-            var classes = _.where(model.elements, {instanceOf: model.elements['core.Class']});
+            var classes = _.where(model.elements, {
+                instanceOf: model.elements['core.Class']
+            });
             _.forEach(classes, function(clazz) {
                 clazz.extends = _.map(clazz.extends, function(extend) {
                     return model.elements[extend];
                 });
             });
-            
+
+            // Link classes children extends attributes
+            classes = model.instancesOf(model.elements['core.Class']);
+            _.forEach(classes, function(clazz) {
+                clazz.extends = _.map(clazz.extends, function(extend) {
+                    return typeof extend === 'string' ? model.elements[extend] : extend;
+                });
+            });
+
+            // Link attributes type attribute
+            var attributes = _.where(model.elements, {
+                instanceOf: model.elements['core.Attribute']
+            });
+            _.forEach(attributes, function(attribute) {
+                attribute.type = model.elements[attribute.type];
+            });
+
+            // Link package attribute of RootElements
+
+            // Linking attributes
+            _.forEach(model.elements, function(element) {
+                var attributes = getAllAttributes(element.instanceOf);
+                attributes = _.filter(attributes, function(attribute) {
+                    return attribute != model.elements['core.Element.name'] &&
+                        attribute != model.elements['core.Element.instanceOf'] &&
+                        attribute != model.elements['core.Class.extends'] &&
+                        attribute != model.elements['core.Class.attributes'] &&
+                        attribute != model.elements['core.RootElement.package'];
+                });
+                _.forEach(attributes, function(attribute) {
+                    if (! model.isInstanceOf(attribute.type.instanceOf, model.elements['core.type.Type'])) {
+                        if (!attribute.multiple) {
+                            if (typeof element[attribute.name] === 'string') {
+                                element[attribute.name] = model.elements[element[attribute.name]];
+                            }
+                        }
+                        else {
+                            element[attribute.name] = _.map(element[attribute.name], function(attr) {
+                                return typeof attr === 'string' ? model.elements[attr] : attr;
+                            });
+                        }
+                    }
+                });
+            });
+
             emit('loaded');
         });
 
-        
+
         register(null, {
             "model": model
         });

@@ -98,7 +98,7 @@ define(function(require, exports, module) {
                 }
                 model.select(element);
             });
-            
+
             tree.setDataProvider(treeData);
 
             var btnTreeSettings = plugin.getElement("btnTreeSettings");
@@ -179,7 +179,18 @@ define(function(require, exports, module) {
 
             treeData.getChildren = function(node) {
                 if (!node.children && node.element) {
-                    node.children = _.map(node.element.elements, getNodeFromElement);
+                    var children = [];
+                    _.each(node.element.instanceOf.attributes, function(attribute) {
+                        if (attribute.composition) {
+                            if (attribute.multiple) {
+                                children = children.concat(_.map(node.element[attribute.name], getNodeFromElement));
+                            }
+                            else {
+                                children.push(getNodeFromElement(node.element[attribute.name]));
+                            }
+                        }
+                    });
+                    node.children = children;
                 }
 
                 if (node.children && node.children[0]) {
@@ -194,7 +205,21 @@ define(function(require, exports, module) {
             };
 
             treeData.hasChildren = function(node) {
-                return node.element && node.element.elements && node.element.elements.length > 0;
+                if (node.children && node.children[0]) {
+                    return true;
+                }
+                if (! node.element) {
+                    return false;
+                }
+                var hasChildren = false;
+                _.each(node.element.instanceOf.attributes, function(attribute) {
+                    if (attribute.composition) {
+                        if (node.element[attribute.name] && (! attribute.multiple || node.element[attribute.name][0])) {
+                            hasChildren = true;
+                        }
+                    }
+                });
+                return hasChildren;
             };
 
             var root = {
