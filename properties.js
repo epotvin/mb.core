@@ -20,7 +20,7 @@ define(function(require, exports, module) {
 
         var staticPrefix = "/static/plugins/c9.ide.layout.classic";
 
-        var plugin = new Panel("Properties", main.consumes, {
+        var plugin = new Panel("epotvin", main.consumes, {
             index: options.index || 100,
             caption: "Properties",
             panelCSSClass: "workspace_files",

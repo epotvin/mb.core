@@ -21,7 +21,7 @@ define(function(require, exports, module) {
 
         var staticPrefix = "/static/plugins/c9.ide.layout.classic";
 
-        var plugin = new Panel("Meta Browser", main.consumes, {
+        var plugin = new Panel("epotvin", main.consumes, {
             index: options.index || 100,
             caption: "Meta Browser",
             panelCSSClass: "workspace_files",

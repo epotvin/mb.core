@@ -19,6 +19,7 @@ define(function(require, exports, module) {
         var markup = require("text!./modelEditor.xml");
 
         var handle = editors.register("modelEditor", "ModelEditor", ModelEditor, []);
+        handle.developer = 'epotvin';
         var handleEmit = handle.getEmitter();
         handleEmit.setMaxListeners(1000);
 

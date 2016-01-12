@@ -8,7 +8,7 @@ define(function(require, exports, module) {
         'use strict';
         var Plugin = imports.Plugin;
 
-        var core = new Plugin("Ajax.org", main.consumes);
+        var core = new Plugin("epotvin", main.consumes);
         core.Class = require('./core/Class');
         core.Element = require('./core/Element');
         core.Package = require('./core/Package');

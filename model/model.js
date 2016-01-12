@@ -9,7 +9,7 @@ define(function(require, exports, module) {
         var core = imports.core;
         var filePersister = imports.filePersister;
 
-        var model = new Plugin('model', main.comsumes);
+        var model = new Plugin('epotvin', main.comsumes);
         var emit = model.getEmitter();
         emit.setMaxListeners(500);
 
