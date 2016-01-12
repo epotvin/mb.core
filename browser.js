@@ -56,6 +56,7 @@ define(function(require, exports, module) {
             });
         }
 
+        var treeData = getTreeData();
 
         var drawn = false;
 
@@ -80,8 +81,6 @@ define(function(require, exports, module) {
             layout.on("resize", function() {
                 tree.resize();
             }, plugin);
-
-            var treeData = getTreeData();
 
             layout.on("eachTheme", function(e) {
                 var height = parseInt(ui.getStyleRule(".filetree .tree-row", "height"), 10) || 22;
@@ -117,6 +116,7 @@ define(function(require, exports, module) {
 
             plugin.panel = viewer;
 
+            reloadModel();
         }
 
         function $hookIntoApfFocus(ace, amlNode) {
@@ -162,6 +162,31 @@ define(function(require, exports, module) {
             viewer = null;
         });
 
+        model.on('loaded', reloadModel);
+
+        function reloadModel() {
+            var root = {
+                children: [{
+                    label: "models",
+                    path: "!domains",
+                    isOpen: true,
+                    className: "heading",
+                    isRoot: true,
+                    isFolder: true,
+                    status: "loaded",
+                    map: {},
+                    children: [],
+                    noSelect: true,
+                    $sorted: true
+                }]
+            };
+
+            _.each(model.root.elements, function(element) {
+                root.children.push(getNodeFromElement(element));
+            });
+            treeData.setRoot(root);
+        }
+
         register(null, {
             "browser": plugin
         });
@@ -181,7 +206,7 @@ define(function(require, exports, module) {
                 if (!node.children && node.element) {
                     var children = [];
                     _.each(node.element.instanceOf.attributes, function(attribute) {
-                        if (attribute.composition) {
+                        if (node.element[attribute.name] && attribute.composition) {
                             if (attribute.multiple) {
                                 children = children.concat(_.map(node.element[attribute.name], getNodeFromElement));
                             }
@@ -208,42 +233,19 @@ define(function(require, exports, module) {
                 if (node.children && node.children[0]) {
                     return true;
                 }
-                if (! node.element) {
+                if (!node.element) {
                     return false;
                 }
                 var hasChildren = false;
                 _.each(node.element.instanceOf.attributes, function(attribute) {
-                    if (attribute.composition) {
-                        if (node.element[attribute.name] && (! attribute.multiple || node.element[attribute.name][0])) {
+                    if (node.element[attribute.name] && attribute.composition && !attribute.type.isInstanceOf(model.elements['core.type.Type'])) {
+                        if (node.element[attribute.name] && (!attribute.multiple || node.element[attribute.name][0])) {
                             hasChildren = true;
                         }
                     }
                 });
                 return hasChildren;
             };
-
-            var root = {
-                children: [{
-                    label: "models",
-                    path: "!domains",
-                    isOpen: true,
-                    className: "heading",
-                    isRoot: true,
-                    isFolder: true,
-                    status: "loaded",
-                    map: {},
-                    children: [],
-                    noSelect: true,
-                    $sorted: true
-                }]
-            };
-
-            model.on('loaded', function() {
-                _.each(model.root.elements, function(element) {
-                    root.children.push(getNodeFromElement(element));
-                });
-                treeData.setRoot(root);
-            });
 
             return treeData;
         }

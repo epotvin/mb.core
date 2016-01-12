@@ -12,8 +12,10 @@
     "url": ""
   },
   "plugins": {
+    "model/core": {},
     "browser": {},
-    "model": {},
+    "model/model": {},
+    "model/filePersister": {},
     "properties": {},
     "modelEditor": {}
   },
