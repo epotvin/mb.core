@@ -4,8 +4,8 @@ define(function(require, exports, module) {
     var RootElement = require('./RootElement');
     
     class Package extends RootElement {
-        constructor(name) {
-            super(name);
+        constructor(name, model) {
+            super(name, model);
             this.elements = [];
         }
     }

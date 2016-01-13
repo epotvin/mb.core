@@ -5,19 +5,20 @@ define(function(require, exports, module) {
     var RootElement = require('./RootElement');
     
     class Class extends RootElement {
-        constructor(name, actualClass, attributes) {
-            super(name);
-            this.attributes = attributes || [];
+
+        constructor(name, model) {
+            super(name, model);
+            this.attributes = [];
         }
         
-        getAllAttributes(clazz) {
+        getAllAttributes() {
             var attributes = [];
-            if (clazz.extends) {
-                _.each(clazz.extends, function(extended) {
-                    attributes = attributes.concat(this.getAllAttributes(extended));
+            if (this.extends) {
+                _.each(this.extends, function(extended) {
+                    attributes = attributes.concat(extended.getAllAttributes());
                 });
             }
-            attributes = attributes.concat(clazz.attributes);
+            attributes = attributes.concat(this.attributes);
             return attributes;
         }
 
@@ -32,7 +33,7 @@ define(function(require, exports, module) {
             }
             return false;
         };
-
+        
     }
     
     module.exports = Class;

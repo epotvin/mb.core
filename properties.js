@@ -82,10 +82,10 @@ define(function(require, exports, module) {
 
             model.on('select', function(e) {
                 var element = e.element;
-                var items = _.map(_.keys(element), function(key) {
+                var items = _.map(element.instanceOf.getAllAttributes(), function(attribute) {
                     return {
-                        label: key,
-                        value: element[key].name ? element[key].name : element[key]
+                        label: attribute.name,
+                        value: element.getLabel(attribute)
                     };
                 });
                 treeData.setRoot({

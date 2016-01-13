@@ -18,29 +18,30 @@ define(function(require, exports, module) {
 
         core.addToModel = function(model) {
             var elements = {
-                'core': new core.Package('core'),
-                'core.Element': new core.Class('Element'),
-                'core.Element.name': new core.Attribute('name'),
-                'core.Element.instanceOf': new core.Attribute('instanceOf'),
-                'core.RootElement': new core.Class('RootElement'),
-                'core.RootElement.package': new core.Attribute('package'),
-                'core.Class': new core.Class('Class'),
-                'core.Class.abstract': new core.Attribute('abstract'),
-                'core.Class.extends': new core.Attribute('extends'),
-                'core.Class.attributes': new core.Attribute('attributes'),
-                'core.Attribute': new core.Class('Attribute'),
-                'core.Attribute.mandatory': new core.Attribute('mandatory'),
-                'core.Attribute.composition': new core.Attribute('composition'),
-                'core.Attribute.multiple': new core.Attribute('multiple'),
-                'core.Attribute.referencedBy': new core.Attribute('referencedBy'),
-                'core.Attribute.owner': new core.Attribute('owner'),
-                'core.Package': new core.Class('Package'),
-                'core.Package.elements': new core.Attribute('elements'),
-                'core.type': new core.Package('type'),
-                'core.type.Type': new core.Class('Type'),
-                'core.type.String': new core.Class('String'),
-                'core.type.Number': new core.Class('Number'),
-                'core.type.Boolean': new core.Class('Boolean')
+                'core': new core.Package('core', model),
+                'core.Element': new core.Class('Element', model),
+                'core.Element.name': new core.Attribute('name', model),
+                'core.Element.instanceOf': new core.Attribute('instanceOf', model),
+                'core.RootElement': new core.Class('RootElement', model),
+                'core.RootElement.package': new core.Attribute('package', model),
+                'core.Class': new core.Class('Class', model),
+                'core.Class.abstract': new core.Attribute('abstract', model),
+                'core.Class.extends': new core.Attribute('extends', model),
+                'core.Class.attributes': new core.Attribute('attributes', model),
+                'core.Attribute': new core.Class('Attribute', model),
+                'core.Attribute.type': new core.Attribute('type', model),
+                'core.Attribute.mandatory': new core.Attribute('mandatory', model),
+                'core.Attribute.composition': new core.Attribute('composition', model),
+                'core.Attribute.multiple': new core.Attribute('multiple', model),
+                'core.Attribute.referencedBy': new core.Attribute('referencedBy', model),
+                'core.Attribute.owner': new core.Attribute('owner', model),
+                'core.Package': new core.Class('Package', model),
+                'core.Package.elements': new core.Attribute('elements', model),
+                'core.type': new core.Package('type', model),
+                'core.type.Type': new core.Class('Type', model),
+                'core.type.String': new core.Class('String', model),
+                'core.type.Number': new core.Class('Number', model),
+                'core.type.Boolean': new core.Class('Boolean', model)
             };
 
             _.extend(elements['core'], {
@@ -135,6 +136,7 @@ define(function(require, exports, module) {
                 'package': elements['core'],
                 'extends': [elements['core.Element']],
                 attributes: [
+                    elements['core.Attribute.type'],
                     elements['core.Attribute.mandatory'],
                     elements['core.Attribute.composition'],
                     elements['core.Attribute.multiple'],
@@ -143,6 +145,14 @@ define(function(require, exports, module) {
                 ]
             });
 
+            _.extend(elements['core.Attribute.type'], {
+                instanceOf: elements['core.Attribute'],
+                type: elements['core.Class'],
+                mandatory: true,
+                composition: false,
+                owner: elements['core.Attribute']
+            });
+            
             _.extend(elements['core.Attribute.mandatory'], {
                 instanceOf: elements['core.Attribute'],
                 type: elements['core.type.Boolean'],
@@ -172,6 +182,7 @@ define(function(require, exports, module) {
 
             _.extend(elements['core.Attribute.owner'], {
                 instanceOf: elements['core.Class'],
+                type: elements['core.Class'],
                 mandatory: true,
                 referencedBy: elements['core.Class.attributes'],
                 owner: elements['core.Attribute']
@@ -180,7 +191,7 @@ define(function(require, exports, module) {
             _.extend(elements['core.Package'], {
                 instanceOf: elements['core.Class'],
                 'package': elements['core'],
-                'extends': [elements['core.Rootelement']],
+                'extends': [elements['core.RootElement']],
                 attributes: [
                     elements['core.Package.elements']
                 ]
@@ -228,6 +239,10 @@ define(function(require, exports, module) {
                 'package': elements['core.type']
             });
 
+            _.each(elements, function(element, fullPath) {
+                element.fullPath = fullPath;
+            });
+            
             model.root.elements.push(elements['core']);
             _.extend(model.elements, elements);
 
