@@ -14,7 +14,7 @@ define(function(require, exports, module) {
         getLabel(attribute) {
             if (!attribute) return this.name;
             if (attribute.type.isInstanceOf(this.model.elements['core.type.Type'])) {
-                return this[attribute.name];
+                return this[attribute.name].toString();
             }
             if (attribute.multiple) {
                 return '[' + _.reduce(this[attribute.name], function(memo, attribute) {

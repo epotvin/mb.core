@@ -181,7 +181,7 @@ define(function(require, exports, module) {
             });
 
             _.extend(elements['core.Attribute.owner'], {
-                instanceOf: elements['core.Class'],
+                instanceOf: elements['core.Attribute'],
                 type: elements['core.Class'],
                 mandatory: true,
                 referencedBy: elements['core.Class.attributes'],

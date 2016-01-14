@@ -35,17 +35,28 @@ define(function(require, exports, module) {
                         created = true;
                     }
 
-                    var ok = true;
+                    if (created) {
+                        elements[fullName] = element;
+                        updated++;
+                    }
+
                     _.each(clazz.getAllAttributes(), function(attribute) {
-                        if (!ok ||
-                            attribute === model.elements['core.Element.name'] ||
-                            attribute === model.elements['core.Element.instanceOf'] ||
-                            attribute === model.elements['core.RootElement.package'] ||
-                            attribute === model.elements['core.Attribute.owner']) return;
-                        if (attribute.type.isInstanceOf(model.elements['core.type.Type'])) {
-                            element[attribute.name] = e[attribute.name];
+                        if (attribute.referencedBy && attribute.referencedBy.composition) {
+                            return element[attribute.name] = elements[location];
+                        }
+                        
+                        if (attribute === model.elements['core.Element.name'] ||
+                            attribute === model.elements['core.Element.instanceOf']) return;
+
+                        if (attribute.type.is(model.elements['core.type.Boolean'])) {
+                            element[attribute.name] = (e[attribute.name] || false);
                             return;
                         }
+                        
+                        if (attribute.type.isInstanceOf(model.elements['core.type.Type'])) {
+                            return element[attribute.name] = e[attribute.name];
+                        }
+                        
                         if (attribute.composition) {
                             if (attribute.multiple) {
                                 element[attribute.name] = _.map(e[attribute.name], function(attr) {
@@ -61,28 +72,16 @@ define(function(require, exports, module) {
                                 var values = _.map(e[attribute.name], function(name) {
                                     return model.elements[name] || elements[name];
                                 });
-                                if (values.length === e[attribute.name].length) {
-                                    element[attribute.name] = values;
-                                }
-                                else {
-                                    ok = false;
-                                }
+                                element[attribute.name] = values;
                             }
                             else {
                                 var value = model.elements[e[attribute.name]] || elements[e[attribute.name]];
                                 if (value) {
                                     element[attribute.name] = value;
                                 }
-                                else {
-                                    ok = false;
-                                }
                             }
                         }
                     });
-                    if (ok && created) {
-                        elements[fullName] = element;
-                        updated++;
-                    }
                     return element;
                 }
 
