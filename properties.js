@@ -82,12 +82,20 @@ define(function(require, exports, module) {
 
             model.on('select', function(e) {
                 var element = e.element;
-                var items = _.map(element.instanceOf.getAllAttributes(), function(attribute) {
+
+                var items = _.map(element.instanceOf.getAllClasses(), function(clazz) {
                     return {
-                        label: attribute.name,
-                        value: element.getLabel(attribute)
+                        label: clazz.name,
+                        isOpen: true,
+                        items: _.map(clazz.attributes, function(attribute) {
+                            return {
+                                label: attribute.name,
+                                value: element.getLabel(attribute)
+                            };
+                        })
                     };
                 });
+
                 treeData.setRoot({
                     label: "root",
                     items: items
@@ -98,6 +106,10 @@ define(function(require, exports, module) {
                 return "<span class='dbgVarIcon'></span>";
             };
             grid.setDataProvider(treeData);
+
+            treeData.sort = function(children, compare) {
+                return 0;
+            };
 
             $hookIntoApfFocus(grid, container);
             grid.renderer.setScrollMargin(10, 10);
@@ -118,8 +130,6 @@ define(function(require, exports, module) {
 
                 if (e.changed && grid)(grid).resize(true);
             });
-
-            grid.setDataProvider(treeData);
 
             var btnTreeSettings = plugin.getElement("btnTreeSettings");
             var mnuFilesSettings = plugin.getElement("mnuFilesSettings");

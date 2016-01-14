@@ -34,6 +34,16 @@ define(function(require, exports, module) {
             return false;
         };
         
+        getAllClasses() {
+            var classes = [];
+            if (this.extends) {
+                _.each(this.extends, function(extended) {
+                    classes = classes.concat(extended.getAllClasses());
+                });
+            }
+            classes.push(this);
+            return classes;
+        }
     }
     
     module.exports = Class;

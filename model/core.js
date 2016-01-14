@@ -239,8 +239,8 @@ define(function(require, exports, module) {
                 'package': elements['core.type']
             });
 
-            _.each(elements, function(element, fullPath) {
-                element.fullPath = fullPath;
+            _.each(elements, function(element, fullName) {
+                element.fullName = fullName;
             });
             
             model.root.elements.push(elements['core']);
