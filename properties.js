@@ -85,7 +85,7 @@ define(function(require, exports, module) {
 
                 var items = _.map(element.instanceOf.getAllClasses(), function(clazz) {
                     return {
-                        label: clazz.name,
+                        label: clazz.fullName,
                         isOpen: true,
                         items: _.map(clazz.attributes, function(attribute) {
                             return {
@@ -96,6 +96,17 @@ define(function(require, exports, module) {
                     };
                 });
 
+                items.push({
+                    label: 'References',
+                    isOpen: true,
+                    items: _.map(element.refs, function(ref) {
+                        return {
+                            label: ref.element.fullName,
+                            value: ref.attribute.fullName
+                        };
+                    })
+                });
+                
                 treeData.setRoot({
                     label: "root",
                     items: items

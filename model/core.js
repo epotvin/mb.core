@@ -44,6 +44,13 @@ define(function(require, exports, module) {
                 'core.type.Boolean': new core.Class('Boolean', model)
             };
 
+            _.extend(model.elements, elements);
+
+            elements['core.Class'].defineAttribute(elements['core.Class.extends']);
+            elements['core.Class'].defineAttribute(elements['core.Class.attributes']);
+            elements['core.RootElement'].defineAttribute(elements['core.RootElement.package']);
+            
+            
             _.extend(elements['core'], {
                 instanceOf: elements['core.Package'],
                 elements: [
@@ -244,7 +251,6 @@ define(function(require, exports, module) {
             });
             
             model.root.elements.push(elements['core']);
-            _.extend(model.elements, elements);
 
         };
 

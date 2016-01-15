@@ -8,7 +8,7 @@ define(function(require, exports, module) {
 
         constructor(name, model) {
             super(name, model);
-            this.attributes = [];
+            this.values.attributes = [];
         }
         
         getAllAttributes() {
@@ -44,6 +44,7 @@ define(function(require, exports, module) {
             classes.push(this);
             return classes;
         }
+        
     }
     
     module.exports = Class;
