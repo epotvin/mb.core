@@ -14,6 +14,8 @@ define(function(require, exports, module) {
         var model = imports.model;
 
         var Tree = require("ace_tree/tree");
+        var EditableTree = require("ace_tree/edit");
+        
         var TreeData = require("ace_tree/data_provider");
 
         var markup = require("text!./properties.xml");
@@ -28,7 +30,7 @@ define(function(require, exports, module) {
             where: options.where || "right"
         });
 
-        var grid, container, viewer;
+        var grid, container, viewer, editableGrid;
 
         var loaded = false;
 
@@ -68,6 +70,8 @@ define(function(require, exports, module) {
             viewer = options.aml;
 
             grid = new Tree(container.$int);
+            editableGrid = new EditableTree(grid);
+            
             grid.enableRename = true;
             var treeData = new TreeData();
             treeData.columns = [{
@@ -124,7 +128,6 @@ define(function(require, exports, module) {
                 return 0;
             };
 
-            $hookIntoApfFocus(grid, container);
             grid.renderer.setScrollMargin(10, 10);
             grid.renderer.setTheme({
                 cssClass: "blackdg"
@@ -160,33 +163,6 @@ define(function(require, exports, module) {
 
             plugin.panel = viewer;
 
-        }
-
-        function $hookIntoApfFocus(ace, amlNode) {
-            // makes apf to treat barTerminal as codeEditor
-            amlNode.$isTextInput = function(e) {
-                return true;
-            };
-            ace.on("focus", function() {
-                amlNode.focus();
-            });
-            ace.on("blur", function() {
-                // amlNode.blur();
-            });
-            amlNode.$focus = function(e, fromContextMenu) {
-                if (fromContextMenu) {
-                    ace.renderer.visualizeFocus();
-                }
-                else {
-                    ace.textInput.focus();
-                }
-            };
-            amlNode.$blur = function(e) {
-                if (!ace.isFocused())
-                    ace.renderer.visualizeBlur();
-                else
-                    ace.textInput.blur();
-            };
         }
 
         plugin.on("draw", function(e) {

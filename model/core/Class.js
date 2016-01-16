@@ -32,7 +32,7 @@ define(function(require, exports, module) {
                 }).length > 0;
             }
             return false;
-        };
+        }
         
         getAllClasses() {
             var classes = [];
@@ -45,6 +45,15 @@ define(function(require, exports, module) {
             return classes;
         }
         
+        getIcon() {
+            var icon = this.icon;
+            if (!icon && this.extends) {
+                _.each(this.extends, function(extent) {
+                    icon = extent.getIcon();
+                });
+            }
+            return icon;
+        }
     }
     
     module.exports = Class;

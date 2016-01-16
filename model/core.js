@@ -70,7 +70,8 @@ define(function(require, exports, module) {
                 attributes: [
                     elements['core.Element.name'],
                     elements['core.Element.instanceOf']
-                ]
+                ],
+                icon: '/coremodels/core/Element-icon.png'
             });
 
             _.extend(elements['core.Element.name'], {
@@ -94,7 +95,8 @@ define(function(require, exports, module) {
                 'extends': [elements['core.Element']],
                 attributes: [
                     elements['core.RootElement.package']
-                ]
+                ],
+                icon: '/coremodels/core/RootElement-icon.png'
             });
 
             _.extend(elements['core.RootElement.package'], {
@@ -113,7 +115,8 @@ define(function(require, exports, module) {
                     elements['core.Class.abstract'],
                     elements['core.Class.extends'],
                     elements['core.Class.attributes']
-                ]
+                ],
+                icon: '/coremodels/core/Class-icon.png'
             });
 
             _.extend(elements['core.Class.abstract'], {
@@ -151,7 +154,8 @@ define(function(require, exports, module) {
                     elements['core.Attribute.readOnly'],
                     elements['core.Attribute.referencedBy'],
                     elements['core.Attribute.owner']
-                ]
+                ],
+                icon: '/coremodels/core/Attribute-icon.png'
             });
 
             _.extend(elements['core.Attribute.type'], {
@@ -210,7 +214,8 @@ define(function(require, exports, module) {
                 'extends': [elements['core.RootElement']],
                 attributes: [
                     elements['core.Package.elements']
-                ]
+                ],
+                icon: '/coremodels/core/Package-icon.png'
             });
 
             _.extend(elements['core.Package.elements'], {
