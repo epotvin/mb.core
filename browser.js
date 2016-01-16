@@ -78,8 +78,9 @@ define(function(require, exports, module) {
             if (node.element) {
                 var iconPath = node.element.instanceOf.getIcon();
                 var url = vfs.url(iconPath);
-                return '<span class="ace_tree-icon" style="background-image: url(' + url + '); background-size: 20px 20px;"></span>';
+                return '<span class="ace_tree-icon" style="background-image: url(' + url + ')"></span>';
             }
+            return '';
         }
 
         function getChildren(node) {

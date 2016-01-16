@@ -1,184 +1,90 @@
 /* global _ */
 define(function(require, exports, module) {
-    main.consumes = ["c9", "util", "Panel", "panels", "ui", "layout", "model"];
+    main.consumes = ["Panel", "Datagrid", "model", "vfs"];
     main.provides = ["properties"];
     return main;
 
     function main(options, imports, register) {
-        var c9 = imports.c9;
-        var util = imports.util;
         var Panel = imports.Panel;
-        var panels = imports.panels;
-        var ui = imports.ui;
-        var layout = imports.layout;
+        var Datagrid = imports.Datagrid;
         var model = imports.model;
-
-        var Tree = require("ace_tree/tree");
-        var EditableTree = require("ace_tree/edit");
-        
-        var TreeData = require("ace_tree/data_provider");
-
-        var markup = require("text!./properties.xml");
-
-        var staticPrefix = "/static/plugins/c9.ide.layout.classic";
+        var vfs = imports.vfs;
 
         var plugin = new Panel("epotvin", main.consumes, {
             index: options.index || 100,
             caption: "Properties",
-            panelCSSClass: "workspace_files",
             minWidth: 130,
             where: options.where || "right"
         });
 
-        var grid, container, viewer, editableGrid;
+        var grid;
 
-        var loaded = false;
+        plugin.on('load', function() {});
 
-        function load() {
-            if (loaded) return false;
-            loaded = true;
-
-            panels.on("afterAnimate", function(e) {
-                if (panels.isActive("tree"))
-                    grid && grid.resize();
-            });
-
-            // On Ready Resize initially
-            c9.once("ready", function() {
-                grid && grid.resize();
-            });
-
-            var css = require("text!./browser.css");
-            ui.insertCss(util.getFileIconCss(staticPrefix), false, plugin);
-            ui.insertCss(css, options.staticPrefix, plugin);
-
-            layout.on("eachTheme", function(e) {
-                if (e.changed && grid)(grid).resize(true);
-            });
-        }
-
-
-        var drawn = false;
-
-        function draw(options) {
-            if (drawn) return;
-            drawn = true;
-
-            ui.insertMarkup(options.aml, markup, plugin);
-
-            container = plugin.getElement("container");
-            viewer = options.aml;
-
-            grid = new Tree(container.$int);
-            editableGrid = new EditableTree(grid);
-            
-            grid.enableRename = true;
-            var treeData = new TreeData();
-            treeData.columns = [{
-                caption: "Property",
-                value: "name",
-                width: "50%",
-                type: 'tree'
-            }, {
-                caption: "Value",
-                value: "value",
-                width: "50%",
-                editor: "textbox"
-            }];
-
-            model.on('select', function(e) {
-                var element = e.element;
-
-                var items = _.map(element.instanceOf.getAllClasses(), function(clazz) {
-                    return {
-                        label: clazz.fullName,
-                        isOpen: true,
-                        items: _.map(clazz.attributes, function(attribute) {
-                            return {
-                                label: attribute.name,
-                                value: element.getLabel(attribute)
-                            };
-                        })
-                    };
-                });
-
-                items.push({
-                    label: 'References',
-                    isOpen: true,
-                    items: _.map(element.refs, function(ref) {
-                        return {
-                            label: ref.element.fullName,
-                            value: ref.attribute.fullName
-                        };
-                    })
-                });
-
-                treeData.setRoot({
-                    label: "root",
-                    items: items
-                });
-            });
-
-            treeData.getIconHTML = function(node) {
-                return "<span class='dbgVarIcon'></span>";
-            };
-            grid.setDataProvider(treeData);
-
-            treeData.sort = function(children, compare) {
-                return 0;
-            };
-
-            grid.renderer.setScrollMargin(10, 10);
-            grid.renderer.setTheme({
-                cssClass: "blackdg"
-            });
-
-            grid.renderer.scrollBarV.$minWidth = 10;
-
-            layout.on("resize", function() {
-                grid.resize(true);
+        plugin.on('draw', function(e) {
+            grid = new Datagrid({
+                container: e.html,
+                columns: [{
+                    caption: "Property",
+                    value: "name",
+                    width: "50%",
+                    type: 'tree'
+                }, {
+                    caption: "Value",
+                    value: "value",
+                    width: "50%",
+                    editor: "textbox"
+                }],
+                enableRename: true,
+                getIconHTML: function(node) {
+                    if (node.clazz) {
+                        var iconPath = node.clazz.getIcon() || node.clazz.instanceOf.getIcon();
+                        var url = vfs.url(iconPath);
+                        return '<span class="dbgVarIcon" style="background-image: url(' + url + ')"></span>';
+                    }
+                    return '';
+                }
             }, plugin);
 
-            layout.on("eachTheme", function(e) {
-                var height = parseInt(ui.getStyleRule(".filetree .tree-row", "height"), 10) || 22;
-                treeData.rowHeightInner = height;
-                treeData.rowHeight = height;
-
-                if (e.changed && grid)(grid).resize(true);
-            });
-
-            var btnTreeSettings = plugin.getElement("btnTreeSettings");
-            var mnuFilesSettings = plugin.getElement("mnuFilesSettings");
-
-            btnTreeSettings.setAttribute("submenu", mnuFilesSettings);
-            grid.renderer.on("scrollbarVisibilityChanged", updateScrollBarSize);
-            grid.renderer.on("resize", updateScrollBarSize);
-            grid.renderer.scrollBarV.$minWidth = 10;
-
-            function updateScrollBarSize() {
-                var scrollBarV = grid.renderer.scrollBarV;
-                var w = scrollBarV.isVisible ? scrollBarV.getWidth() : 0;
-                btnTreeSettings.$ext.style.marginRight = Math.max(w - 2, 0) + "px";
-            }
-
-            plugin.panel = viewer;
-
-        }
-
-        plugin.on("draw", function(e) {
-            draw(e);
-        });
-
-        plugin.on("load", function() {
-            load();
         });
 
         plugin.on("unload", function() {
-            loaded = false;
-            drawn = false;
-            grid && grid.destroy();
-            container = null;
-            viewer = null;
+            grid.unload();
+        });
+
+        model.on('select', function(e) {
+            var element = e.element;
+
+            var items = _.map(element.instanceOf.getAllClasses(), function(clazz) {
+                return {
+                    label: clazz.fullName,
+                    clazz: clazz,
+                    isOpen: true,
+                    items: _.map(clazz.attributes, function(attribute) {
+                        return {
+                            label: attribute.name,
+                            clazz: attribute.type,
+                            value: element.getLabel(attribute)
+                        };
+                    })
+                };
+            });
+
+            items.push({
+                label: 'References',
+                isOpen: true,
+                items: _.map(element.refs, function(ref) {
+                    return {
+                        label: ref.element.fullName,
+                        value: ref.attribute.fullName
+                    };
+                })
+            });
+
+            grid.setRoot({
+                label: "root",
+                items: items
+            });
         });
 
         register(null, {
