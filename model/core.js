@@ -33,6 +33,7 @@ define(function(require, exports, module) {
                 'core.Attribute.mandatory': new core.Attribute('mandatory', model),
                 'core.Attribute.composition': new core.Attribute('composition', model),
                 'core.Attribute.multiple': new core.Attribute('multiple', model),
+                'core.Attribute.readOnly': new core.Attribute('readOnly', model),
                 'core.Attribute.referencedBy': new core.Attribute('referencedBy', model),
                 'core.Attribute.owner': new core.Attribute('owner', model),
                 'core.Package': new core.Class('Package', model),
@@ -49,8 +50,8 @@ define(function(require, exports, module) {
             elements['core.Class'].defineAttribute(elements['core.Class.extends']);
             elements['core.Class'].defineAttribute(elements['core.Class.attributes']);
             elements['core.RootElement'].defineAttribute(elements['core.RootElement.package']);
-            
-            
+
+
             _.extend(elements['core'], {
                 instanceOf: elements['core.Package'],
                 elements: [
@@ -147,6 +148,7 @@ define(function(require, exports, module) {
                     elements['core.Attribute.mandatory'],
                     elements['core.Attribute.composition'],
                     elements['core.Attribute.multiple'],
+                    elements['core.Attribute.readOnly'],
                     elements['core.Attribute.referencedBy'],
                     elements['core.Attribute.owner']
                 ]
@@ -159,7 +161,7 @@ define(function(require, exports, module) {
                 composition: false,
                 owner: elements['core.Attribute']
             });
-            
+
             _.extend(elements['core.Attribute.mandatory'], {
                 instanceOf: elements['core.Attribute'],
                 type: elements['core.type.Boolean'],
@@ -175,6 +177,13 @@ define(function(require, exports, module) {
             });
 
             _.extend(elements['core.Attribute.multiple'], {
+                instanceOf: elements['core.Attribute'],
+                type: elements['core.type.Boolean'],
+                composition: true,
+                owner: elements['core.Attribute']
+            });
+
+            _.extend(elements['core.Attribute.readOnly'], {
                 instanceOf: elements['core.Attribute'],
                 type: elements['core.type.Boolean'],
                 composition: true,
@@ -249,7 +258,7 @@ define(function(require, exports, module) {
             _.each(elements, function(element, fullName) {
                 element.fullName = fullName;
             });
-            
+
             model.root.elements.push(elements['core']);
 
         };

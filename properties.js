@@ -68,6 +68,7 @@ define(function(require, exports, module) {
             viewer = options.aml;
 
             grid = new Tree(container.$int);
+            grid.enableRename = true;
             var treeData = new TreeData();
             treeData.columns = [{
                 caption: "Property",
@@ -77,7 +78,8 @@ define(function(require, exports, module) {
             }, {
                 caption: "Value",
                 value: "value",
-                width: "50%"
+                width: "50%",
+                editor: "textbox"
             }];
 
             model.on('select', function(e) {
@@ -106,7 +108,7 @@ define(function(require, exports, module) {
                         };
                     })
                 });
-                
+
                 treeData.setRoot({
                     label: "root",
                     items: items

@@ -15,6 +15,9 @@ define(function(require, exports, module) {
 
         getLabel(attribute) {
             if (!attribute) return this.name;
+            if (attribute.type.is(this.model.elements['core.type.Boolean'])) {
+                return this[attribute.name] != undefined ? this[attribute.name].toString() : 'false';
+            }
             if (attribute.type.isInstanceOf(this.model.elements['core.type.Type'])) {
                 return this[attribute.name] != undefined ? this[attribute.name].toString() : '';
             }
