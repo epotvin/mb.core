@@ -49,24 +49,63 @@ define(function(require, exports, module) {
 
         function reloadModel() {
             var root = {
-                children: [{
-                    label: "models",
-                    path: "!domains",
-                    isOpen: true,
-                    className: "heading",
-                    isRoot: true,
-                    isFolder: true,
-                    status: "loaded",
-                    map: {},
-                    children: [],
-                    noSelect: true,
-                    $sorted: true
-                }]
+                children: []
             };
 
-            _.each(model.root.elements, function(element) {
+            root.children.push({
+                label: "m3",
+                path: "!domains",
+                isOpen: true,
+                className: "heading",
+                isRoot: true,
+                isFolder: true,
+                status: "loaded",
+                map: {},
+                children: [],
+                noSelect: true,
+                $sorted: true
+            });
+
+            _.each(model.m3.elements, function(element) {
                 root.children.push(getNodeFromElement(element));
             });
+            
+            root.children.push({
+                label: "m2",
+                path: "!domains",
+                isOpen: true,
+                className: "heading",
+                isRoot: true,
+                isFolder: true,
+                status: "loaded",
+                map: {},
+                children: [],
+                noSelect: true,
+                $sorted: true
+            });
+
+            _.each(model.m2.elements, function(element) {
+                root.children.push(getNodeFromElement(element));
+            });
+            
+            root.children.push({
+                label: "m1",
+                path: "!domains",
+                isOpen: true,
+                className: "heading",
+                isRoot: true,
+                isFolder: true,
+                status: "loaded",
+                map: {},
+                children: [],
+                noSelect: true,
+                $sorted: true
+            });
+
+            _.each(model.m1.elements, function(element) {
+                root.children.push(getNodeFromElement(element));
+            });
+            
             tree.setRoot(root);
         }
 

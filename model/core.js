@@ -9,14 +9,15 @@ define(function(require, exports, module) {
         var Plugin = imports.Plugin;
 
         var core = new Plugin("epotvin", main.consumes);
+        
         core.Class = require('./core/Class');
         core.Element = require('./core/Element');
         core.Package = require('./core/Package');
         core.RootElement = require('./core/RootElement');
         core.Attribute = require('./core/Attribute');
 
-
         core.addToModel = function(model) {
+            
             var elements = {
                 'core': new core.Package('core', model),
                 'core.Element': new core.Class('Element', model),
@@ -272,7 +273,7 @@ define(function(require, exports, module) {
                 element.fullName = fullName;
             });
 
-            model.root.elements.push(elements['core']);
+            model.m3.elements.push(elements['core']);
 
         };
 

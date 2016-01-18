@@ -10,8 +10,8 @@ define(function(require, exports, module) {
 
         var filePersister = new Plugin('epotvin', main.consumes);
 
-        filePersister.loadFolder = function(model, folderName, callback) {
-            loadPkg(folderName, {
+        filePersister.loadFolder = function(model, folder, callback) {
+            loadPkg(folder.path, {
                 elements: []
             }, function(err, graph) {
                 if (err) return callback(err);
@@ -97,7 +97,7 @@ define(function(require, exports, module) {
                     });
                 }
 
-                model.root.elements = model.root.elements.concat(root);
+                folder.target.elements = folder.target.elements.concat(root);
                 _.extend(model.elements, elements);
 
                 callback();

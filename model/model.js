@@ -13,7 +13,9 @@ define(function(require, exports, module) {
         var emit = model.getEmitter();
         emit.setMaxListeners(500);
 
-        model.root = new core.Package('root');
+        model.m1 = new core.Package('m1');
+        model.m2 = new core.Package('m2');
+        model.m3 = new core.Package('m3');
         model.elements = {};
 
         model.select = function(element) {
@@ -29,9 +31,14 @@ define(function(require, exports, module) {
             });
         };
 
-        var folders = [
-            '/metamodels', '/models'
-        ];
+        // todo Put that in settings
+        var folders = [{
+            target: model.m2,
+            path: '/metamodels'
+        }, {
+            target: model.m1,
+            path: '/models'
+        }];
 
         var index = 0;
         model.on("load", function() {
