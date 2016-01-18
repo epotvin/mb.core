@@ -46,15 +46,17 @@ define(function(require, exports, module) {
                 }
             }, plugin);
 
+            model.on('select', function(e) {
+                loadElement(e.element);
+            });
+
         });
 
         plugin.on("unload", function() {
             grid.unload();
         });
 
-        model.on('select', function(e) {
-            var element = e.element;
-
+        function loadElement(element) {
             var items = _.map(element.instanceOf.getAllClasses(), function(clazz) {
                 return {
                     label: clazz.fullName,
@@ -85,7 +87,7 @@ define(function(require, exports, module) {
                 label: "root",
                 items: items
             });
-        });
+        }
 
         register(null, {
             "properties": plugin

@@ -130,7 +130,14 @@ define(function(require, exports, module) {
                                 if (err) return callback(err);
                                 var element = JSON.parse(data);
                                 pkg.elements.push(element);
-                                done();
+                                
+                                var iconPath = path + '/' + file.name.slice(0, -5) + '-icon.png';
+                                fs.exists(iconPath, function(exists) {
+                                    if (exists) {
+                                        element.icon = iconPath; 
+                                    }
+                                    done();
+                                });
                             });
                             break;
                         default:

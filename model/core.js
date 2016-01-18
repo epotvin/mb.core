@@ -28,6 +28,7 @@ define(function(require, exports, module) {
                 'core.Class.abstract': new core.Attribute('abstract', model),
                 'core.Class.extends': new core.Attribute('extends', model),
                 'core.Class.attributes': new core.Attribute('attributes', model),
+                'core.Class.icon': new core.Attribute('icon', model),
                 'core.Attribute': new core.Class('Attribute', model),
                 'core.Attribute.type': new core.Attribute('type', model),
                 'core.Attribute.mandatory': new core.Attribute('mandatory', model),
@@ -95,8 +96,7 @@ define(function(require, exports, module) {
                 'extends': [elements['core.Element']],
                 attributes: [
                     elements['core.RootElement.package']
-                ],
-                icon: '/coremodels/core/RootElement-icon.png'
+                ]
             });
 
             _.extend(elements['core.RootElement.package'], {
@@ -114,7 +114,8 @@ define(function(require, exports, module) {
                 attributes: [
                     elements['core.Class.abstract'],
                     elements['core.Class.extends'],
-                    elements['core.Class.attributes']
+                    elements['core.Class.attributes'],
+                    elements['core.Class.icon']
                 ],
                 icon: '/coremodels/core/Class-icon.png'
             });
@@ -139,6 +140,13 @@ define(function(require, exports, module) {
                 composition: true,
                 multiple: true,
                 referencedBy: elements['core.Attribute.owner'],
+                owner: elements['core.Class']
+            });
+
+            _.extend(elements['core.Class.icon'], {
+                instanceOf: elements['core.Attribute'],
+                type: elements['core.type.String'],
+                readOnly: true,
                 owner: elements['core.Class']
             });
 
