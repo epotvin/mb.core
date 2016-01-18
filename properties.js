@@ -31,7 +31,12 @@ define(function(require, exports, module) {
                     type: 'tree'
                 }, {
                     caption: "Value",
-                    value: "value",
+                    getText: function(node) {
+                        if (node.element) {
+                            return node.element.getLabel(node.attribute);
+                        }
+                        return node.value || '';
+                    },
                     width: "50%",
                     editor: "textbox"
                 }],
@@ -46,6 +51,13 @@ define(function(require, exports, module) {
                 }
             }, plugin);
 
+            grid.on('afterRename', function(e) {
+                e.node.element.update(e.node.attribute, e.value, function(err) {
+                    if (err) return console.log(err);
+                    grid.refresh(true);
+                });    
+            });
+            
             model.on('select', function(e) {
                 loadElement(e.element);
             });
@@ -64,9 +76,10 @@ define(function(require, exports, module) {
                     isOpen: true,
                     items: _.map(clazz.attributes, function(attribute) {
                         return {
+                            element: element,
+                            attribute: attribute,
                             label: attribute.name,
-                            clazz: attribute.type,
-                            value: element.getLabel(attribute)
+                            clazz: attribute.type
                         };
                     })
                 };

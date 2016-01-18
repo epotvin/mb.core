@@ -31,7 +31,6 @@ define(function(require, exports, module) {
                     if (!element) {
                         element = model.newInstance(clazz, e.name);
                         element.instanceOf = clazz;
-                        element.fullName = fullName;
                         created = true;
                     }
 

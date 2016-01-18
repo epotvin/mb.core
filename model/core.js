@@ -269,10 +269,6 @@ define(function(require, exports, module) {
                 'package': elements['core.type']
             });
 
-            _.each(elements, function(element, fullName) {
-                element.fullName = fullName;
-            });
-
             model.m3.elements.push(elements['core']);
 
         };

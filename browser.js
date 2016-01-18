@@ -26,6 +26,7 @@ define(function(require, exports, module) {
             tree = new Tree({
                 container: e.html,
                 getIconHTML: getIconHTML,
+                getCaptionHTML: getCaptionHTML,
                 getChildren: getChildren,
                 hasChildren: hasChildren
             }, plugin);
@@ -69,7 +70,7 @@ define(function(require, exports, module) {
             _.each(model.m3.elements, function(element) {
                 root.children.push(getNodeFromElement(element));
             });
-            
+
             root.children.push({
                 label: "m2",
                 path: "!domains",
@@ -87,7 +88,7 @@ define(function(require, exports, module) {
             _.each(model.m2.elements, function(element) {
                 root.children.push(getNodeFromElement(element));
             });
-            
+
             root.children.push({
                 label: "m1",
                 path: "!domains",
@@ -105,7 +106,7 @@ define(function(require, exports, module) {
             _.each(model.m1.elements, function(element) {
                 root.children.push(getNodeFromElement(element));
             });
-            
+
             tree.setRoot(root);
         }
 
@@ -120,6 +121,10 @@ define(function(require, exports, module) {
                 return '<span class="ace_tree-icon" style="background-image: url(' + url + ')"></span>';
             }
             return '';
+        }
+
+        function getCaptionHTML(node) {
+            return node.element ? node.element.name : node.label;
         }
 
         function getChildren(node) {
@@ -168,6 +173,9 @@ define(function(require, exports, module) {
         }
 
         function getNodeFromElement(element) {
+            element.on('changed', function(e) {
+                tree.refresh(true);
+            });
             return {
                 label: element.name,
                 isFolder: element.elements && element.elements.length > 0,

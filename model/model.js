@@ -13,9 +13,15 @@ define(function(require, exports, module) {
         var emit = model.getEmitter();
         emit.setMaxListeners(500);
 
-        model.m1 = new core.Package('m1');
-        model.m2 = new core.Package('m2');
-        model.m3 = new core.Package('m3');
+        model.m1 = {
+            elements: []
+        };
+        model.m2 = {
+            elements: []
+        };
+        model.m3 = {
+            elements: []
+        };
         model.elements = {};
 
         model.select = function(element) {
@@ -43,6 +49,9 @@ define(function(require, exports, module) {
         var index = 0;
         model.on("load", function() {
             core.addToModel(model);
+            model.m1.instanceOf = model.elements['core.Package'];
+            model.m2.instanceOf = model.elements['core.Package'];
+            model.m3.instanceOf = model.elements['core.Package'];
             filePersister.loadFolder(model, folders[index++], loaded);
         });
 
