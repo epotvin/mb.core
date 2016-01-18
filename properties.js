@@ -55,9 +55,9 @@ define(function(require, exports, module) {
                 e.node.element.update(e.node.attribute, e.value, function(err) {
                     if (err) return console.log(err);
                     grid.refresh(true);
-                });    
+                });
             });
-            
+
             model.on('select', function(e) {
                 loadElement(e.element);
             });
@@ -79,7 +79,14 @@ define(function(require, exports, module) {
                             element: element,
                             attribute: attribute,
                             label: attribute.name,
-                            clazz: attribute.type
+                            clazz: attribute.type,
+                            items: attribute.multiple ? _.map(element[attribute.name], function(value) {
+                                return {
+                                    label: '',
+                                    element: value,
+                                    attribute: model.elements['core.Element.fullName']
+                                };
+                            }) : null
                         };
                     })
                 };

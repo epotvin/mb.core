@@ -27,7 +27,7 @@ define(function(require, exports, module) {
                     if (memo.length > 0) {
                         memo += ', ';
                     }
-                    return memo += attribute.fullName;
+                    return memo += attribute.name;
                 }, '') + ']';
             }
             else {
@@ -57,7 +57,7 @@ define(function(require, exports, module) {
             }, this);
             return this[parentAttribute.name] ? this[parentAttribute.name].fullName + '.' + this.name : this.name;
         }
-        
+
         set instanceOf(clazz) {
             this.values.instanceOf = clazz;
             clazz.addRef(this, this.model.elements['core.Element.instanceOf']);
@@ -115,7 +115,7 @@ define(function(require, exports, module) {
                 callback();
             }
         }
-        
+
         getListeners(eventName) {
             if (! this.listeners[eventName]) {
                 this.listeners[eventName] = [];
@@ -126,7 +126,7 @@ define(function(require, exports, module) {
         on(eventName, callback) {
             this.getListeners(eventName).push(callback);
         }
-        
+
         emit(eventName, event) {
             _.each(this.getListeners(eventName), function(listener) {
                 listener(event);
