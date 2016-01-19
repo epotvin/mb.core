@@ -64,19 +64,24 @@ define(function(require, exports, module) {
         }
 
         model.newInstance = function(clazz, name) {
+            var element = null;
             if (clazz.is(this.elements['core.Class'])) {
-                return new core.Class(name, this);
+                element = new core.Class(name, this);
             }
-            if (clazz.is(this.elements['core.Attribute'])) {
-                return new core.Attribute(name, this);
+            else if (clazz.is(this.elements['core.Attribute'])) {
+                element = new core.Attribute(name, this);
             }
-            if (clazz.is(this.elements['core.Package'])) {
-                return new core.Package(name, this);
+            else if (clazz.is(this.elements['core.Package'])) {
+                element = new core.Package(name, this);
             }
-            if (clazz.is(this.elements['core.RootElement'])) {
-                return new core.RootElement(name, this);
+            else if (clazz.is(this.elements['core.RootElement'])) {
+                element = new core.RootElement(name, this);
             }
-            return new core.Element(name, this);
+            else {
+                element = new core.Element(name, this);
+            }
+            element.instanceOf = clazz;
+            return element;
         };
 
         register(null, {

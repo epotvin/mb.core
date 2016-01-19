@@ -75,16 +75,36 @@ define(function(require, exports, module) {
         defineAttribute(attribute) {
             if (!Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), attribute.name)) {
                 Object.defineProperty(Object.getPrototypeOf(this), attribute.name, {
-                    set: function(value) {
-                        this.values[attribute.name] = value;
-                        if (Array.isArray(value)) {
-                            _.each(value, function(v) {
-                                v && v.addRef && v.addRef(this, attribute);
-                            }, this);
+                    set: function(newValue) {
+                        var oldValue = this.values[attribute.name];
+
+                        if (oldValue === newValue) return;
+
+                        if (oldValue) {
+                            // Remove refs
                         }
-                        else {
-                            value && value.addRef && value.addRef(this, attribute);
+                        if (newValue) {
+                            if (Array.isArray(newValue)) {
+                                _.each(newValue, function(v) {
+                                    v && v.addRef && v.addRef(this, attribute);
+                                }, this);
+                            }
+                            else {
+                                newValue && newValue.addRef && newValue.addRef(this, attribute);
+                            }
                         }
+                        
+                        this.values[attribute.name] = newValue;
+                        
+                        this.emit('changed', {
+                            element: this,
+                            attribute: attribute,
+                            oldValue: oldValue,
+                            newValue: newValue
+                        });
+                        _.each(this.refs, function(ref) {
+                            ref.element[ref.attribute] = this;
+                        });
                     },
                     get: function() {
                         return this.values[attribute.name];
