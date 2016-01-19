@@ -31,7 +31,7 @@ define(function(require, exports, module) {
                 }, '') + ']';
             }
             else {
-                return this[attribute.name] ? this[attribute.name].fullName : null;
+                return this[attribute.name] ? this[attribute.name].fullName : '';
             }
         }
 

@@ -25,15 +25,15 @@ define(function(require, exports, module) {
             grid = new Datagrid({
                 container: e.html,
                 columns: [{
+                    value: 'label',
                     caption: "Property",
-                    value: "name",
                     width: "50%",
                     type: 'tree'
                 }, {
                     caption: "Value",
                     getText: function(node) {
-                        if (node.element) {
-                            return node.element.getLabel(node.attribute);
+                        if (node.getValue) {
+                            return node.getValue();
                         }
                         return node.value || '';
                     },
@@ -48,6 +48,10 @@ define(function(require, exports, module) {
                         return '<span class="dbgVarIcon" style="background-image: url(' + url + ')"></span>';
                     }
                     return '';
+                },
+                getCaptionHTML: function(node) {
+                    if (node.getLabel) return node.getLabel();
+                    return node.label;
                 }
             }, plugin);
 
@@ -78,12 +82,20 @@ define(function(require, exports, module) {
                         return {
                             element: element,
                             attribute: attribute,
-                            label: attribute.name,
+                            getLabel: function() {
+                                return attribute.name;
+                            },
+                            getValue: function() {
+                                return element.getLabel(attribute);
+                            },
                             clazz: attribute.type,
                             items: attribute.multiple ? _.map(element[attribute.name], function(value) {
                                 return {
                                     label: '',
                                     element: value,
+                                    getValue: function() {
+                                        return value.fullName;
+                                    },
                                     attribute: model.elements['core.Element.fullName']
                                 };
                             }) : null
@@ -97,8 +109,12 @@ define(function(require, exports, module) {
                 isOpen: true,
                 items: _.map(element.refs, function(ref) {
                     return {
-                        label: ref.element.fullName,
-                        value: ref.attribute.fullName
+                        getLabel: function() {
+                            return ref.element.fullName;
+                        },
+                        getValue: function() {
+                            return ref.attribute.fullName;
+                        }
                     };
                 })
             });
