@@ -33,7 +33,7 @@ define(function(require, exports, module) {
                     var fullName = (location ? location + '.' : '') + e.name;
                     var element = elements[fullName];
                     if (!element) {
-                        element = model.newInstance(clazz, e.name);
+                        element = new clazz.proto(e.name, model);
                         elements[fullName] = element;
                         updated++;
 
@@ -91,6 +91,9 @@ define(function(require, exports, module) {
                             }
                         }
                     });
+                    if (element.isInstanceOf(model.elements['core.Class'])) {
+                        element.initProto();
+                    }
                     return element;
                 }
 

@@ -56,10 +56,8 @@ define(function(require, exports, module) {
             }, plugin);
 
             grid.on('afterRename', function(e) {
-                e.node.element.update(e.node.attribute, e.value, function(err) {
-                    if (err) return console.log(err);
-                    grid.refresh(true);
-                });
+                e.node.element[e.node.attribute.name] = e.value;
+                grid.refresh(true);
             });
 
             model.on('select', function(e) {

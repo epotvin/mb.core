@@ -1,5 +1,6 @@
 /* global _*/
 define(function(require, exports, module) {
+    'use strict';
     main.consumes = ["Plugin", "core", "filePersister"];
     main.provides = ["model"];
     return main;
@@ -10,6 +11,7 @@ define(function(require, exports, module) {
         var filePersister = imports.filePersister;
 
         var model = new Plugin('epotvin', main.comsumes);
+        window.model = model; 
         var emit = model.getEmitter();
         emit.setMaxListeners(500);
 
@@ -66,7 +68,7 @@ define(function(require, exports, module) {
         model.newInstance = function(clazz, name) {
             var element = null;
             if (clazz.is(this.elements['core.Class'])) {
-                element = new core.Class(name, this);
+                element = class extends clazz {};
             }
             else if (clazz.is(this.elements['core.Attribute'])) {
                 element = new core.Attribute(name, this);
@@ -80,7 +82,6 @@ define(function(require, exports, module) {
             else {
                 element = new core.Element(name, this);
             }
-            element.instanceOf = clazz;
             return element;
         };
 

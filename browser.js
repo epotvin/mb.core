@@ -131,7 +131,7 @@ define(function(require, exports, module) {
             if (!node.children && node.element) {
                 var children = [];
                 _.each(node.element.instanceOf.attributes, function(attribute) {
-                    if (node.element[attribute.name] && attribute.composition) {
+                    if (node.element[attribute.name] && attribute.composition && !attribute.type.isInstanceOf(model.elements['core.type.Type'])) {
                         if (attribute.multiple) {
                             children = children.concat(_.map(node.element[attribute.name], getNodeFromElement));
                         }

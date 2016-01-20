@@ -9,15 +9,18 @@ define(function(require, exports, module) {
         var Plugin = imports.Plugin;
 
         var core = new Plugin("epotvin", main.consumes);
-        
+
         core.Class = require('./core/Class');
         core.Element = require('./core/Element');
         core.Package = require('./core/Package');
         core.RootElement = require('./core/RootElement');
         core.Attribute = require('./core/Attribute');
+        core.type = {
+            Type: require('./core/type/Type')
+        };
 
         core.addToModel = function(model) {
-            
+
             var elements = {
                 'core': new core.Package('core', model),
                 'core.Element': new core.Class('Element', model),
@@ -42,20 +45,14 @@ define(function(require, exports, module) {
                 'core.Package.elements': new core.Attribute('elements', model),
                 'core.type': new core.Package('type', model),
                 'core.type.Type': new core.Class('Type', model),
-                'core.type.String': new core.Class('String', model),
-                'core.type.Number': new core.Class('Number', model),
-                'core.type.Boolean': new core.Class('Boolean', model)
+                'core.type.String': new core.type.Type('String', model),
+                'core.type.Number': new core.type.Type('Number', model),
+                'core.type.Boolean': new core.type.Type('Boolean', model)
             };
 
             _.extend(model.elements, elements);
 
-            elements['core.Class'].defineAttribute(elements['core.Class.extends']);
-            elements['core.Class'].defineAttribute(elements['core.Class.attributes']);
-            elements['core.RootElement'].defineAttribute(elements['core.RootElement.package']);
-
-
             _.extend(elements['core'], {
-                instanceOf: elements['core.Package'],
                 elements: [
                     elements['core.Element'],
                     elements['core.RootElement'],
@@ -67,17 +64,16 @@ define(function(require, exports, module) {
             });
 
             _.extend(elements['core.Element'], {
-                instanceOf: elements['core.Class'],
                 'package': elements['core'],
                 attributes: [
                     elements['core.Element.name'],
                     elements['core.Element.instanceOf']
                 ],
-                icon: '/coremodels/core/Element-icon.png'
+                icon: '/coremodels/core/Element-icon.png',
+                proto: core.Element
             });
 
             _.extend(elements['core.Element.name'], {
-                instanceOf: elements['core.Attribute'],
                 type: elements['core.type.String'],
                 mandatory: true,
                 composition: true,
@@ -85,23 +81,21 @@ define(function(require, exports, module) {
             });
 
             _.extend(elements['core.Element.instanceOf'], {
-                instanceOf: elements['core.Attribute'],
                 type: elements['core.Class'],
                 mandatory: true,
                 owner: elements['core.Element']
             });
 
             _.extend(elements['core.RootElement'], {
-                instanceOf: elements['core.Class'],
                 'package': elements['core'],
                 'extends': [elements['core.Element']],
                 attributes: [
                     elements['core.RootElement.package']
-                ]
+                ],
+                proto: core.RootElement
             });
 
             _.extend(elements['core.RootElement.package'], {
-                instanceOf: elements['core.Attribute'],
                 type: elements['core.Package'],
                 mandatory: true,
                 referencedBy: elements['core.Package.elements'],
@@ -109,7 +103,6 @@ define(function(require, exports, module) {
             });
 
             _.extend(elements['core.Class'], {
-                instanceOf: elements['core.Class'],
                 'package': elements['core'],
                 'extends': [elements['core.RootElement']],
                 attributes: [
@@ -118,25 +111,23 @@ define(function(require, exports, module) {
                     elements['core.Class.attributes'],
                     elements['core.Class.icon']
                 ],
-                icon: '/coremodels/core/Class-icon.png'
+                icon: '/coremodels/core/Class-icon.png',
+                proto: core.Class
             });
 
             _.extend(elements['core.Class.abstract'], {
-                instanceOf: elements['core.Attribute'],
                 type: elements['core.type.Boolean'],
                 composition: true,
                 owner: elements['core.Class']
             });
 
             _.extend(elements['core.Class.extends'], {
-                instanceOf: elements['core.Attribute'],
                 type: elements['core.Class'],
                 multiple: true,
                 owner: elements['core.Class']
             });
 
             _.extend(elements['core.Class.attributes'], {
-                instanceOf: elements['core.Attribute'],
                 type: elements['core.Attribute'],
                 composition: true,
                 multiple: true,
@@ -145,14 +136,12 @@ define(function(require, exports, module) {
             });
 
             _.extend(elements['core.Class.icon'], {
-                instanceOf: elements['core.Attribute'],
                 type: elements['core.type.String'],
                 readOnly: true,
                 owner: elements['core.Class']
             });
 
             _.extend(elements['core.Attribute'], {
-                instanceOf: elements['core.Class'],
                 'package': elements['core'],
                 'extends': [elements['core.Element']],
                 attributes: [
@@ -164,11 +153,11 @@ define(function(require, exports, module) {
                     elements['core.Attribute.referencedBy'],
                     elements['core.Attribute.owner']
                 ],
-                icon: '/coremodels/core/Attribute-icon.png'
+                icon: '/coremodels/core/Attribute-icon.png',
+                proto: core.Attribute
             });
 
             _.extend(elements['core.Attribute.type'], {
-                instanceOf: elements['core.Attribute'],
                 type: elements['core.Class'],
                 mandatory: true,
                 composition: false,
@@ -176,41 +165,35 @@ define(function(require, exports, module) {
             });
 
             _.extend(elements['core.Attribute.mandatory'], {
-                instanceOf: elements['core.Attribute'],
                 type: elements['core.type.Boolean'],
                 composition: true,
                 owner: elements['core.Attribute']
             });
 
             _.extend(elements['core.Attribute.composition'], {
-                instanceOf: elements['core.Attribute'],
                 type: elements['core.type.Boolean'],
                 composition: true,
                 owner: elements['core.Attribute']
             });
 
             _.extend(elements['core.Attribute.multiple'], {
-                instanceOf: elements['core.Attribute'],
                 type: elements['core.type.Boolean'],
                 composition: true,
                 owner: elements['core.Attribute']
             });
 
             _.extend(elements['core.Attribute.readOnly'], {
-                instanceOf: elements['core.Attribute'],
                 type: elements['core.type.Boolean'],
                 composition: true,
                 owner: elements['core.Attribute']
             });
 
             _.extend(elements['core.Attribute.referencedBy'], {
-                instanceOf: elements['core.Attribute'],
                 type: elements['core.Attribute'],
                 owner: elements['core.Attribute']
             });
 
             _.extend(elements['core.Attribute.owner'], {
-                instanceOf: elements['core.Attribute'],
                 type: elements['core.Class'],
                 mandatory: true,
                 referencedBy: elements['core.Class.attributes'],
@@ -218,17 +201,16 @@ define(function(require, exports, module) {
             });
 
             _.extend(elements['core.Package'], {
-                instanceOf: elements['core.Class'],
                 'package': elements['core'],
                 'extends': [elements['core.RootElement']],
                 attributes: [
                     elements['core.Package.elements']
                 ],
-                icon: '/coremodels/core/Package-icon.png'
+                icon: '/coremodels/core/Package-icon.png',
+                proto: core.Package
             });
 
             _.extend(elements['core.Package.elements'], {
-                instanceOf: elements['core.Attribute'],
                 type: elements['core.RootElement'],
                 composition: true,
                 multiple: true,
@@ -237,7 +219,6 @@ define(function(require, exports, module) {
             });
 
             _.extend(elements['core.type'], {
-                instanceOf: elements['core.Package'],
                 'package': elements['core'],
                 elements: [
                     elements['core.type.Type'],
@@ -248,25 +229,25 @@ define(function(require, exports, module) {
             });
 
             _.extend(elements['core.type.Type'], {
-                instanceOf: elements['core.Class'],
                 'abstract': true,
                 'package': elements['core.type'],
-                'extends': [elements['core.Class']]
+                'extends': [elements['core.Class']],
+                proto: core.type.Type
             });
 
             _.extend(elements['core.type.String'], {
-                instanceOf: elements['core.type.Type'],
-                'package': elements['core.type']
+                'package': elements['core.type'],
+                proto: class String extends core.type.Type {}
             });
 
             _.extend(elements['core.type.Number'], {
-                instanceOf: elements['core.type.Type'],
-                'package': elements['core.type']
+                'package': elements['core.type'],
+                proto: class Number extends core.type.Type {}
             });
 
             _.extend(elements['core.type.Boolean'], {
-                instanceOf: elements['core.type.Type'],
-                'package': elements['core.type']
+                'package': elements['core.type'],
+                proto: class Boolean extends core.type.Type {}
             });
 
             model.m3.elements.push(elements['core']);

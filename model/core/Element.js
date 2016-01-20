@@ -2,12 +2,86 @@
 define(function(require, exports, module) {
     "use strict";
     class Element {
-        constructor(name, model) {
+        constructor(name, model, values) {
             this.model = model;
-            this.values = {};
+            this.values = values || {};
             this.listeners = {};
             this.refs = [];
             this.name = name;
+        }
+
+        setValue(attribute, newValue) {
+            var oldValue = this.values[attribute.name];
+
+            if (Array.isArray(oldValue)) {
+                _.each(oldValue, function(other) {
+                    other && other.removeRef && other.removeRef(this, attribute);
+                }, this);
+                _.each(newValue, function(other) {
+                    other.addRef && other.addRef(this, attribute);
+                }, this);
+            }
+            else {
+                oldValue && oldValue.removeRef && oldValue.removeRef(this, attribute);
+                newValue && newValue.addRef && newValue.addRef(this, attribute);
+            }
+
+            if (attribute.type) {
+                if (attribute.type.is(this.model.elements['core.type.Number'])) {
+                    newValue = Number(newValue);
+                }
+                if (attribute.type.is(this.model.elements['core.type.Boolean'])) {
+                    newValue = newValue === 'true' || newValue === true;
+                }
+
+            }
+
+            this.values[attribute.name] = newValue;
+
+            this.emit('changed', {
+                element: this,
+                attribute: attribute,
+                oldValue: oldValue,
+                newValue: newValue
+            });
+            _.each(this.refs, function(ref) {
+                ref.element.emit('changed', {
+                    element: ref.element,
+                    attribute: ref.attribute
+                });
+            });
+
+        }
+
+        getValue(attribute) {
+            return this.values[attribute.name];
+        }
+
+        set name(name) {
+            var from = this.name;
+            if (this.model) delete this.model.elements[this.fullname];
+            this.values.name = name;
+            if (this.model) this.model.elements[this.fullname] = this;
+            this.emit("changed", {
+                attribute: this.model.elements['core.Element.name'],
+                from: from,
+                to: this.name
+            });
+        }
+
+        get name() {
+            return this.values.name;
+        }
+
+        get instanceOf() {
+            return this.model.elements['core.Element'];
+        }
+
+        get fullName() {
+            var parentAttribute = _.find(this.instanceOf.getAllAttributes(), function(attribute) {
+                return attribute.referencedBy && attribute.referencedBy.composition;
+            }, this);
+            return this[parentAttribute.name] ? this[parentAttribute.name].fullName + '.' + this.name : this.name;
         }
 
         isInstanceOf(clazz) {
@@ -35,84 +109,6 @@ define(function(require, exports, module) {
             }
         }
 
-        set name(name) {
-            var from = this.name;
-            if (this.model) delete this.model.elements[this.fullname];
-            this.values.name = name;
-            if (this.model) this.model.elements[this.fullname] = this;
-            this.emit("changed", {
-                attribute: this.model.elements['core.Element.name'],
-                from: from,
-                to : this.name
-            });
-        }
-
-        get name() {
-            return this.values.name;
-        }
-
-        get fullName() {
-            var parentAttribute = _.find(this.instanceOf.getAllAttributes(), function(attribute) {
-                return attribute.referencedBy && attribute.referencedBy.composition;
-            }, this);
-            return this[parentAttribute.name] ? this[parentAttribute.name].fullName + '.' + this.name : this.name;
-        }
-
-        set instanceOf(clazz) {
-            this.values.instanceOf = clazz;
-            clazz.addRef(this, this.model.elements['core.Element.instanceOf']);
-            _.each(clazz.getAllAttributes(), function(attribute) {
-                if (attribute != this.model.elements['core.Element.name'] && attribute != this.model.elements['core.Element.instanceOf']) {
-                    this.defineAttribute(attribute);
-                }
-            }, this);
-        }
-
-        get instanceOf() {
-            return this.values.instanceOf;
-        }
-
-        defineAttribute(attribute) {
-            if (!Object.getOwnPropertyDescriptor(Object.getPrototypeOf(this), attribute.name)) {
-                Object.defineProperty(Object.getPrototypeOf(this), attribute.name, {
-                    set: function(newValue) {
-                        var oldValue = this.values[attribute.name];
-
-                        if (oldValue === newValue) return;
-
-                        if (oldValue) {
-                            // Remove refs
-                        }
-                        if (newValue) {
-                            if (Array.isArray(newValue)) {
-                                _.each(newValue, function(v) {
-                                    v && v.addRef && v.addRef(this, attribute);
-                                }, this);
-                            }
-                            else {
-                                newValue && newValue.addRef && newValue.addRef(this, attribute);
-                            }
-                        }
-                        
-                        this.values[attribute.name] = newValue;
-                        
-                        this.emit('changed', {
-                            element: this,
-                            attribute: attribute,
-                            oldValue: oldValue,
-                            newValue: newValue
-                        });
-                        _.each(this.refs, function(ref) {
-                            ref.element[ref.attribute] = this;
-                        });
-                    },
-                    get: function() {
-                        return this.values[attribute.name];
-                    }
-                });
-            }
-        }
-
         addRef(element, attribute) {
             var ref = {
                 element: element,
@@ -129,15 +125,8 @@ define(function(require, exports, module) {
             });
         }
 
-        update(attribute, value, callback) {
-            if (attribute.type.isInstanceOf(this.model.elements['core.type.Type'])) {
-                this[attribute.name] = value;
-                callback();
-            }
-        }
-
         getListeners(eventName) {
-            if (! this.listeners[eventName]) {
+            if (!this.listeners[eventName]) {
                 this.listeners[eventName] = [];
             }
             return this.listeners[eventName];
