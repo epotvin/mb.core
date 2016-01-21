@@ -1,6 +1,6 @@
 define(function(require, exports, module) {
     main.consumes = ["Editor", "editors", "ui", "commands", "tabManager", "layout"];
-    main.provides = ["modelEditor"];
+    main.provides = ["metaburger.diagramEditor"];
     return main;
 
     function main(options, imports, register) {
@@ -16,9 +16,9 @@ define(function(require, exports, module) {
         require('underscore');
         var joint = require('jointjs/joint');
 
-        var markup = require("text!./modelEditor.xml");
+        var markup = require("text!./diagramEditor.xml");
 
-        var handle = editors.register("modelEditor", "ModelEditor", ModelEditor, []);
+        var handle = editors.register("diagramEditor", "DiagramEditor", ModelEditor, []);
         handle.developer = 'epotvin';
         var handleEmit = handle.getEmitter();
         handleEmit.setMaxListeners(1000);
@@ -26,7 +26,7 @@ define(function(require, exports, module) {
         handle.on("load", function() {
 
             commands.addCommand({
-                name: "openModel",
+                name: "openDiagram",
                 group: "Model",
                 bindKey: {
                     mac: "Shift-Command-7",
@@ -38,7 +38,7 @@ define(function(require, exports, module) {
                         pane = null;
 
                     tabManager.open({
-                        editorType: "modelEditor",
+                        editorType: "diagramEditor",
                         focus: true,
                         pane: pane
                     }, function(err, tab) {
@@ -56,7 +56,7 @@ define(function(require, exports, module) {
             plugin.on("draw", function(e) {
                 ui.insertMarkup(e.tab, markup, plugin);
 
-                ui.insertCss(require("text!./modelEditor.css"), options.staticPrefix, plugin);
+                ui.insertCss(require("text!./diagramEditor.css"), options.staticPrefix, plugin);
                 ui.insertCss(require("text!./joint.css"), options.staticPrefix, plugin);
 
                 container = plugin.getElement("barModelEditor").$int;
@@ -128,7 +128,7 @@ define(function(require, exports, module) {
             return plugin;
         }
         register(null, {
-            "modelEditor": handle
+            "metaburger.diagramEditor": handle
         });
     }
 });

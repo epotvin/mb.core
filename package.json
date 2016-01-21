@@ -12,12 +12,12 @@
     "url": "https://github.com/epotvin/metaburger"
   },
   "plugins": {
-    "model/core": {},
-    "browser": {},
     "model/model": {},
-    "model/filePersister": {},
-    "properties": {},
-    "modelEditor": {}
+    "model/persister": {},
+    "model/core": {},
+    "browser/browser": {},
+    "properties/propertiesPanel": {},
+    "diagram/diagramEditor": {}
   },
   "dependencies": {
     "jointjs": "0.9.7"

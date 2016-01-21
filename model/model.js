@@ -1,14 +1,14 @@
 /* global _*/
 define(function(require, exports, module) {
     'use strict';
-    main.consumes = ["Plugin", "core", "filePersister"];
-    main.provides = ["model"];
+    main.consumes = ["Plugin", "metaburger.core", "metaburger.persister"];
+    main.provides = ["metaburger.model"];
     return main;
 
     function main(options, imports, register) {
         var Plugin = imports.Plugin;
-        var core = imports.core;
-        var filePersister = imports.filePersister;
+        var core = imports['metaburger.core'];
+        var filePersister = imports['metaburger.persister'];
 
         var model = new Plugin('epotvin', main.comsumes);
         window.model = model; 
@@ -86,7 +86,7 @@ define(function(require, exports, module) {
         };
 
         register(null, {
-            "model": model
+            "metaburger.model": model
         });
 
     }

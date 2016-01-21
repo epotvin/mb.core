@@ -1,14 +1,14 @@
 /* global _ */
 define(function(require, exports, module) {
-    main.consumes = ["Panel", "Datagrid", "model", "vfs"];
-    main.provides = ["properties"];
+    main.consumes = ["Panel", "Datagrid", "vfs", "metaburger.model"];
+    main.provides = ["metaburger.propertiesPanel"];
     return main;
 
     function main(options, imports, register) {
         var Panel = imports.Panel;
         var Datagrid = imports.Datagrid;
-        var model = imports.model;
         var vfs = imports.vfs;
+        var model = imports['metaburger.model'];
 
         var plugin = new Panel("epotvin", main.consumes, {
             index: options.index || 100,
@@ -124,7 +124,7 @@ define(function(require, exports, module) {
         }
 
         register(null, {
-            "properties": plugin
+            "metaburger.propertiesPanel": plugin
         });
     }
 });

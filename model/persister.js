@@ -1,7 +1,7 @@
 /* global _*/
 define(function(require, exports, module) {
-    main.consumes = ["Plugin", "fs", "core", "format.jsbeautify"];
-    main.provides = ["filePersister"];
+    main.consumes = ["Plugin", "fs", "format.jsbeautify"];
+    main.provides = ["metaburger.persister"];
     return main;
 
     function main(options, imports, register) {
@@ -9,11 +9,11 @@ define(function(require, exports, module) {
         var fs = imports.fs;
         var format = imports['format.jsbeautify'];
         
-        var filePersister = new Plugin('epotvin', main.consumes);
+        var persister = new Plugin('epotvin', main.consumes);
 
         var loading = false;
 
-        filePersister.loadFolder = function(model, folder, callback) {
+        persister.loadFolder = function(model, folder, callback) {
             loading = true;
             loadPkg(folder.path, {
                 elements: []
@@ -214,7 +214,7 @@ define(function(require, exports, module) {
         }
 
         register(null, {
-            "filePersister": filePersister
+            "metaburger.persister": persister
         });
 
     }

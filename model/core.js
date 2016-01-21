@@ -1,7 +1,7 @@
 /* global _ */
 define(function(require, exports, module) {
     main.consumes = ["Plugin"];
-    main.provides = ["core"];
+    main.provides = ["metaburger.core"];
     return main;
 
     function main(options, imports, register) {
@@ -255,7 +255,7 @@ define(function(require, exports, module) {
         };
 
         register(null, {
-            "core": core
+            "metaburger.core": core
         });
     }
 });

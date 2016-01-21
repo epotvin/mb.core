@@ -1,14 +1,15 @@
 /* global _ */
 define(function(require, exports, module) {
-    main.consumes = ["Panel", "Tree", "model", "vfs"];
-    main.provides = ["browser"];
+    main.consumes = ["Panel", "Tree", "vfs", "metaburger.model"];
+    main.provides = ["metaburger.browser"];
     return main;
 
     function main(options, imports, register) {
         var Panel = imports.Panel;
         var Tree = imports.Tree;
-        var model = imports.model;
         var vfs = imports.vfs;
+
+        var model = imports['metaburger.model'];
 
         var plugin = new Panel("epotvin", main.consumes, {
             index: options.index || 100,
@@ -110,10 +111,6 @@ define(function(require, exports, module) {
             tree.setRoot(root);
         }
 
-        register(null, {
-            "browser": plugin
-        });
-
         function getIconHTML(node) {
             if (node.element) {
                 var iconPath = node.element.instanceOf.getIcon();
@@ -182,5 +179,10 @@ define(function(require, exports, module) {
                 element: element
             };
         }
+
+        register(null, {
+            "metaburger.browser": plugin
+        });
+
     }
 });
