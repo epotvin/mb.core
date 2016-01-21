@@ -4,10 +4,10 @@ define(function(require, exports, module) {
     class Element {
         constructor(name, model, values) {
             this.model = model;
-            this.values = values || {};
+            this.values = values || [];
             this.listeners = {};
             this.refs = [];
-            this.name = name;
+            this.values.name = name;
         }
 
         setValue(attribute, newValue) {
@@ -25,6 +25,7 @@ define(function(require, exports, module) {
                 oldValue && oldValue.removeRef && oldValue.removeRef(this, attribute);
                 newValue && newValue.addRef && newValue.addRef(this, attribute);
             }
+            attribute.addRef(this, attribute);
 
             if (attribute.type) {
                 if (attribute.type.is(this.model.elements['core.type.Number'])) {
@@ -36,37 +37,28 @@ define(function(require, exports, module) {
 
             }
 
-            this.values[attribute.name] = newValue;
-
-            this.emit('changed', {
-                element: this,
+            var value = _.findWhere(this.values, {attribute: attribute});
+            if (value) {
+                value.value = newValue;
+            }
+            else this.values.push({
                 attribute: attribute,
-                oldValue: oldValue,
-                newValue: newValue
+                value: newValue
             });
-            _.each(this.refs, function(ref) {
-                ref.element.emit('changed', {
-                    element: ref.element,
-                    attribute: ref.attribute
-                });
-            });
-
+            
+            this.emit('changed');
         }
 
         getValue(attribute) {
-            return this.values[attribute.name];
+            var value = _.findWhere(this.values, {attribute : attribute});
+            return value ? value.value : undefined;
         }
 
         set name(name) {
-            var from = this.name;
             if (this.model) delete this.model.elements[this.fullname];
             this.values.name = name;
             if (this.model) this.model.elements[this.fullname] = this;
-            this.emit("changed", {
-                attribute: this.model.elements['core.Element.name'],
-                from: from,
-                to: this.name
-            });
+            this.emit("changed");
         }
 
         get name() {
@@ -116,6 +108,9 @@ define(function(require, exports, module) {
             };
             if (!_.where(this.refs, ref)[0]) {
                 this.refs.push(ref);
+                element.on('changed', function(e) {
+                    if (this.dirty) this.emit('changed');
+                }, this);
             }
         }
 
@@ -132,13 +127,21 @@ define(function(require, exports, module) {
             return this.listeners[eventName];
         }
 
-        on(eventName, callback) {
-            this.getListeners(eventName).push(callback);
+        on(eventName, callback, context) {
+            this.getListeners(eventName).push({
+                callback: callback,
+                context: context
+            });
         }
 
         emit(eventName, event) {
             _.each(this.getListeners(eventName), function(listener) {
-                listener(event);
+                if (listener.context) {
+                    listener.callback.call(listener.context, event);
+                }
+                else {
+                    listener.callback(event);
+                }
             });
         }
     }

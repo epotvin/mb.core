@@ -24,6 +24,10 @@ define(function(require, exports, module) {
             }
             return path;
         }
+        
+        get folder() {
+            return '/' + this.package.fullName.replace(/\./g, '/');
+        }
     }
     
     module.exports = RootElement;

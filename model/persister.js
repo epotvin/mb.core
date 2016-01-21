@@ -8,7 +8,7 @@ define(function(require, exports, module) {
         var Plugin = imports.Plugin;
         var fs = imports.fs;
         var format = imports['format.jsbeautify'];
-        
+
         var persister = new Plugin('epotvin', main.consumes);
 
         var loading = false;
@@ -32,21 +32,26 @@ define(function(require, exports, module) {
 
                     var fullName = (location ? location + '.' : '') + e.name;
                     var element = elements[fullName];
+
                     if (!element) {
+
                         element = new clazz.proto(e.name, model);
                         elements[fullName] = element;
                         updated++;
 
-                        if (e.file) {
-                            element.on('changed', function(event) {
-                                updateFile(event, e.file);
-                            });
-                        }
-                        if (e.folder) {
-                            element.on('changed', function(event) {
-                                updateFolder(event, e.folder);
-                            });
-                        }
+                        element.original = e;
+
+                        Object.defineProperty(element, 'dirty', {
+                            get: function() {
+                                return !loading && !_.isEqual(toJson(this), this.original);
+                            }
+                        });
+                        element.on('changed', function() {
+                            if (loading) return;
+                            if (element.isInstanceOf('core.Package')) updateFolder(element);
+                            else if (element.isInstanceOf('core.RootElement')) updateFile(element);
+                            element.original = toJson(element);
+                        });
                     }
 
                     _.each(clazz.getAllAttributes(), function(attribute) {
@@ -90,10 +95,13 @@ define(function(require, exports, module) {
                                 }
                             }
                         }
+                        if (!element[attribute.name]) updated--;
                     });
+
                     if (element.isInstanceOf(model.elements['core.Class'])) {
                         element.initProto();
                     }
+
                     return element;
                 }
 
@@ -116,29 +124,36 @@ define(function(require, exports, module) {
                 callback();
             });
 
-            function updateFile(e, file) {
+            function updateFile(element) {
                 if (loading) return;
-                var element = e.element;
-                var json = toJson(element, element.instanceOf);
-                delete json.name;
+                var json = toJson(element);
+                if (element.isInstanceOf('core.RootElement')) delete json.name;
                 var content = format.formatString('json', JSON.stringify(json));
                 fs.writeFile(folder.path + element.filePath, content, null, function(err) {
                     if (err) return console.log(err);
-                    element.file = file;
                 });
+                if (element.original.name !== element.name) {
+                    fs.rmfile(folder.path + element.folder + '/' + element.original.name + '.json', function(err) {
+                        if (err) return console.log(err);
+                    });                    
+                }
             }
 
-            function toJson(element, clazz) {
+            function toJson(element) {
                 var json = {};
-                _.each(clazz.getAllAttributes(), function(attribute) {
-                    if (attribute.multiple) {
-                        json[attribute.name] = _.map(element[attribute.name], function(attr) {
-                            return jsonValue(attribute, attr);
-                        });
-                    }
-                    else {
-                        if (! (attribute.referencedBy && attribute.referencedBy.composition)) {
-                            json[attribute.name] = jsonValue(attribute, element[attribute.name]);
+                _.each(element.instanceOf.getAllAttributes(), function(attribute) {
+                    if (element[attribute.name] && attribute != model.elements['core.Class.icon']) {
+                        if (attribute.multiple) {
+                            if (element[attribute.name][0]) {
+                                json[attribute.name] = _.map(element[attribute.name], function(attr) {
+                                    return jsonValue(attribute, attr);
+                                });
+                            }
+                        }
+                        else {
+                            if (!(attribute.referencedBy && attribute.referencedBy.composition)) {
+                                json[attribute.name] = jsonValue(attribute, element[attribute.name]);
+                            }
                         }
                     }
                 });
@@ -151,9 +166,8 @@ define(function(require, exports, module) {
                 return value.fullName;
             }
 
-            function updateFolder(e, file) {
+            function updateFolder(element) {
                 if (loading) return;
-                console.log(e);
             }
 
         };
@@ -174,8 +188,7 @@ define(function(require, exports, module) {
                             var subPkg = {
                                 name: file.name,
                                 instanceOf: 'core.Package',
-                                elements: [],
-                                folder: file
+                                elements: []
                             };
                             pkg.elements.push(subPkg);
                             loadPkg(path + '/' + file.name, subPkg, done);
@@ -185,7 +198,6 @@ define(function(require, exports, module) {
                                 if (err) return callback(err);
                                 var element = JSON.parse(data);
                                 element.name = file.name.slice(0, -5);
-                                element.file = file;
                                 pkg.elements.push(element);
 
                                 var iconPath = path + '/' + file.name.slice(0, -5) + '-icon.png';

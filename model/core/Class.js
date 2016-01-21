@@ -8,7 +8,6 @@ define(function(require, exports, module) {
 
         constructor(name, model, values) {
             super(name, model, values);
-            this.values.attributes = [];
         }
 
         get instanceOf() {
@@ -47,7 +46,7 @@ define(function(require, exports, module) {
                     attributes = attributes.concat(extended.getAllAttributes());
                 });
             }
-            attributes = attributes.concat(this.attributes);
+            attributes = attributes.concat(this.attributes || []);
             return attributes;
         }
 
