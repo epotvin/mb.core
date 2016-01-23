@@ -68,10 +68,11 @@ define(function(require, exports, module) {
                 $sorted: true
             });
 
-            _.each(model.m3.elements, function(element) {
-                root.children.push(getNodeFromElement(element));
-            });
-
+            //_.each(model.m3.get('elements'), function(element) {
+            //    root.children.push(getNodeFromElement(element));
+            //});
+            root.children.push(getNodeFromElement(model.m3));
+            
             root.children.push({
                 label: "m2",
                 path: "!domains",
@@ -127,13 +128,13 @@ define(function(require, exports, module) {
         function getChildren(node) {
             if (!node.children && node.element) {
                 var children = [];
-                _.each(node.element.instanceOf.attributes, function(attribute) {
-                    if (node.element[attribute.name] && attribute.composition && !attribute.type.isInstanceOf(model.elements['core.type.Type'])) {
+                _.each(node.element.instanceOf.getAllAttributes(), function(attribute) {
+                    if (node.element.get(attribute) && attribute.composition && !attribute.type.isInstanceOf('core.type.Type')) {
                         if (attribute.multiple) {
-                            children = children.concat(_.map(node.element[attribute.name], getNodeFromElement));
+                            children = children.concat(_.map(node.element.get(attribute), getNodeFromElement));
                         }
                         else {
-                            children.push(getNodeFromElement(node.element[attribute.name]));
+                            children.push(getNodeFromElement(node.element(attribute)));
                         }
                     }
                 });
@@ -159,9 +160,9 @@ define(function(require, exports, module) {
                 return false;
             }
             var hasChildren = false;
-            _.each(node.element.instanceOf.attributes, function(attribute) {
-                if (node.element[attribute.name] && attribute.composition && !attribute.type.isInstanceOf(model.elements['core.type.Type'])) {
-                    if (node.element[attribute.name] && (!attribute.multiple || node.element[attribute.name][0])) {
+            _.each(node.element.instanceOf.getAllAttributes(), function(attribute) {
+                if (node.element.get(attribute) && attribute.composition && !attribute.type.isInstanceOf('core.type.Type')) {
+                    if (!attribute.multiple || node.element.get(attribute.name)[0]) {
                         hasChildren = true;
                     }
                 }

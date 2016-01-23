@@ -10,43 +10,12 @@ define(function(require, exports, module) {
             super(name, model, values);
         }
 
-        get instanceOf() {
-            return this.model.elements['core.Class'];
-        }
-
-        set abstract(abstract) {
-            this.setValue(this.model.elements['core.Class.abstract'], abstract);
-        }
-
-        get abstract() {
-            return this.getValue(this.model.elements['core.Class.abstract']);
-        }
-
-        set extends(extendz) {
-            this.setValue(this.model.elements['core.Class.extends'], extendz);
-
-        }
-
-        get extends() {
-            return this.getValue(this.model.elements['core.Class.extends']);
-        }
-
-        set attributes(attributes) {
-            this.setValue(this.model.elements['core.Class.attributes'], attributes);
-        }
-
-        get attributes() {
-            return this.getValue(this.model.elements['core.Class.attributes']);
-        }
-
         getAllAttributes() {
             var attributes = [];
-            if (this.extends) {
-                _.each(this.extends, function(extended) {
-                    attributes = attributes.concat(extended.getAllAttributes());
-                });
-            }
-            attributes = attributes.concat(this.attributes || []);
+            _.each(this.extends, function(extended) {
+                attributes = attributes.concat(extended.getAllAttributes());
+            });
+            attributes = attributes.concat(this.attributes);
             return attributes;
         }
 

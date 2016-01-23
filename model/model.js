@@ -21,9 +21,6 @@ define(function(require, exports, module) {
         model.m2 = {
             elements: []
         };
-        model.m3 = {
-            elements: []
-        };
         model.elements = {};
 
         model.select = function(element) {
@@ -40,21 +37,11 @@ define(function(require, exports, module) {
         };
 
         // todo Put that in settings
-        var folders = [{
-            target: model.m2,
-            path: '/metamodels'
-        }, {
-            target: model.m1,
-            path: '/models'
-        }];
+        var folders = [];
 
         var index = 0;
         model.on("load", function() {
-            core.addToModel(model);
-            model.m1.instanceOf = model.elements['core.Package'];
-            model.m2.instanceOf = model.elements['core.Package'];
-            model.m3.instanceOf = model.elements['core.Package'];
-            filePersister.loadFolder(model, folders[index++], loaded);
+            model.m3 = core.loadModel();
         });
 
         function loaded(err) {

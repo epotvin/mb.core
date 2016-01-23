@@ -139,6 +139,11 @@ define(function(require, exports, module) {
                 }
             }
 
+            function updateFolder(element) {
+                if (loading) return;
+                element.original = toJson(element);
+            }
+
             function toJson(element) {
                 var json = {};
                 _.each(element.instanceOf.getAllAttributes(), function(attribute) {
@@ -164,10 +169,6 @@ define(function(require, exports, module) {
                 if (attribute.type.isInstanceOf(model.elements['core.type.Type'])) return value;
                 if (attribute.composition) return toJson(value, attribute.type);
                 return value.fullName;
-            }
-
-            function updateFolder(element) {
-                if (loading) return;
             }
 
         };

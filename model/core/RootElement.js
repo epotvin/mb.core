@@ -5,18 +5,6 @@ define(function(require, exports, module) {
     
     class RootElement extends Element {
         
-        get instanceOf() {
-            return this.model.elements['core.RootElement'];
-        }
-
-        set package(pkg) {
-            this.setValue(this.model.elements['core.RootElement.package'], pkg);
-        }
-        
-        get package() {
-            return this.getValue(this.model.elements['core.RootElement.package']);
-        }
-
         get filePath() {
             var path = '/' + this.fullName.replace(/\./g, '/');
             if (! this.isInstanceOf('core.Package')) {

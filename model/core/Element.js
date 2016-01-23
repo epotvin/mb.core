@@ -2,15 +2,21 @@
 define(function(require, exports, module) {
     "use strict";
     class Element {
-        constructor(name, model, values) {
+        constructor(model) {
             this.model = model;
-            this.values = values || [];
-            this.listeners = {};
-            this.refs = [];
-            this.values.name = name;
+            this.listeners = [];
         }
 
-        setValue(attribute, newValue) {
+        get(attribute) {
+            if (typeof attribute === 'string') {
+                attribute = _.findWhere(this.instanceOf.getAllAttributes(), {name: attribute});
+            }
+            var value = _.findWhere(this.values, {attribute : attribute});
+            if (value) return value.value;
+            if (attribute.multiple) return [];
+        }
+        
+        set(attribute, newValue) {
             var oldValue = this.values[attribute.name];
 
             if (Array.isArray(oldValue)) {
@@ -49,47 +55,30 @@ define(function(require, exports, module) {
             this.emit('changed');
         }
 
-        getValue(attribute) {
-            var value = _.findWhere(this.values, {attribute : attribute});
-            return value ? value.value : undefined;
-        }
-
-        set name(name) {
-            if (this.model) delete this.model.elements[this.fullname];
-            this.values.name = name;
-            if (this.model) this.model.elements[this.fullname] = this;
-            this.emit("changed");
-        }
-
-        get name() {
-            return this.values.name;
-        }
-
-        get instanceOf() {
-            return this.model.elements['core.Element'];
-        }
-
         get fullName() {
             var parentAttribute = _.find(this.instanceOf.getAllAttributes(), function(attribute) {
                 return attribute.referencedBy && attribute.referencedBy.composition;
             }, this);
-            return this[parentAttribute.name] ? this[parentAttribute.name].fullName + '.' + this.name : this.name;
+            return parentAttribute && this[parentAttribute.name] && ! this[parentAttribute.name].isInstanceOf(this.model.element('core.Model')) ? this[parentAttribute.name].fullName + '.' + this.name : this.name;
         }
 
         isInstanceOf(clazz) {
+            if (typeof clazz === 'string') {
+                clazz = this.model.element(clazz);
+            }
             return this.instanceOf.is(clazz);
         }
 
         getLabel(attribute) {
             if (!attribute) return this.name;
-            if (attribute.type.is(this.model.elements['core.type.Boolean'])) {
-                return this[attribute.name] != undefined ? this[attribute.name].toString() : 'false';
+            if (attribute.type.is(this.model.element('core.type.Boolean'))) {
+                return this.get(attribute) != undefined ? this.get(attribute).toString() : 'false';
             }
-            if (attribute.type.isInstanceOf(this.model.elements['core.type.Type'])) {
-                return this[attribute.name] != undefined ? this[attribute.name].toString() : '';
+            if (attribute.type.isInstanceOf(this.model.element('core.type.Type'))) {
+                return this.get(attribute) != undefined ? this.get(attribute).toString() : '';
             }
             if (attribute.multiple) {
-                return '[' + _.reduce(this[attribute.name], function(memo, attribute) {
+                return '[' + _.reduce(this.get(attribute), function(memo, attribute) {
                     if (memo.length > 0) {
                         memo += ', ';
                     }
@@ -97,7 +86,7 @@ define(function(require, exports, module) {
                 }, '') + ']';
             }
             else {
-                return this[attribute.name] ? this[attribute.name].fullName : '';
+                return this.get(attribute) ? this.get(attribute).fullName : '';
             }
         }
 

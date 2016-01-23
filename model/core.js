@@ -8,254 +8,1018 @@ define(function(require, exports, module) {
         'use strict';
         var Plugin = imports.Plugin;
 
-        var core = new Plugin("epotvin", main.consumes);
+        var plugin = new Plugin("epotvin", main.consumes);
 
-        core.Class = require('./core/Class');
-        core.Element = require('./core/Element');
-        core.Package = require('./core/Package');
-        core.RootElement = require('./core/RootElement');
-        core.Attribute = require('./core/Attribute');
-        core.type = {
+        plugin.Class = require('./core/Class');
+        plugin.Element = require('./core/Element');
+        plugin.Model = require('./core/Model');
+        plugin.Package = require('./core/Package');
+        plugin.RootElement = require('./core/RootElement');
+        plugin.Attribute = require('./core/Attribute');
+        plugin.type = {
             Type: require('./core/type/Type')
         };
 
-        core.addToModel = function(model) {
+        plugin.on('load', function() {});
+        plugin.on('unload', function() {});
 
-            var elements = {
-                'core': new core.Package('core', model),
-                'core.Element': new core.Class('Element', model),
-                'core.Element.name': new core.Attribute('name', model),
-                'core.Element.instanceOf': new core.Attribute('instanceOf', model),
-                'core.RootElement': new core.Class('RootElement', model),
-                'core.RootElement.package': new core.Attribute('package', model),
-                'core.Class': new core.Class('Class', model),
-                'core.Class.abstract': new core.Attribute('abstract', model),
-                'core.Class.extends': new core.Attribute('extends', model),
-                'core.Class.attributes': new core.Attribute('attributes', model),
-                'core.Class.icon': new core.Attribute('icon', model),
-                'core.Attribute': new core.Class('Attribute', model),
-                'core.Attribute.type': new core.Attribute('type', model),
-                'core.Attribute.mandatory': new core.Attribute('mandatory', model),
-                'core.Attribute.composition': new core.Attribute('composition', model),
-                'core.Attribute.multiple': new core.Attribute('multiple', model),
-                'core.Attribute.readOnly': new core.Attribute('readOnly', model),
-                'core.Attribute.referencedBy': new core.Attribute('referencedBy', model),
-                'core.Attribute.owner': new core.Attribute('owner', model),
-                'core.Package': new core.Class('Package', model),
-                'core.Package.elements': new core.Attribute('elements', model),
-                'core.type': new core.Package('type', model),
-                'core.type.Type': new core.Class('Type', model),
-                'core.type.String': new core.type.Type('String', model),
-                'core.type.Number': new core.type.Type('Number', model),
-                'core.type.Boolean': new core.type.Type('Boolean', model)
-            };
+        plugin.loadModel = function() {
 
-            _.extend(model.elements, elements);
+            var model = new plugin.Model();
+            model.model = model;
+            var core = new plugin.Package(model);
+            var core_Model = new plugin.Class(model);
+            var core_Container = new plugin.Class(model);
+            var core_Container_elements = new plugin.Attribute(model);
+            var core_Element = new plugin.Class(model);
+            var core_Element_name = new plugin.Attribute(model);
+            var core_Element_instanceOf = new plugin.Attribute(model);
+            var core_Element_model = new plugin.Attribute(model);
+            var core_RootElement = new plugin.Class(model);
+            var core_RootElement_container = new plugin.Attribute(model);
+            var core_Class = new plugin.Class(model);
+            var core_Class_abstract = new plugin.Attribute(model);
+            var core_Class_extends = new plugin.Attribute(model);
+            var core_Class_attributes = new plugin.Attribute(model);
+            var core_Class_icon = new plugin.Attribute(model);
+            var core_Attribute = new plugin.Class(model);
+            var core_Attribute_type = new plugin.Attribute(model);
+            var core_Attribute_mandatory = new plugin.Attribute(model);
+            var core_Attribute_composition = new plugin.Attribute(model);
+            var core_Attribute_multiple = new plugin.Attribute(model);
+            var core_Attribute_readOnly = new plugin.Attribute(model);
+            var core_Attribute_referencedBy = new plugin.Attribute(model);
+            var core_Attribute_owner = new plugin.Attribute(model);
+            var core_Package = new plugin.Class(model);
+            var core_type = new plugin.Package(model);
+            var core_type_Type = new plugin.Class(model);
+            var core_type_String = new plugin.type.Type(model);
+            var core_type_Number = new plugin.type.Type(model);
+            var core_type_Boolean = new plugin.type.Type(model);
 
-            _.extend(elements['core'], {
-                elements: [
-                    elements['core.Element'],
-                    elements['core.RootElement'],
-                    elements['core.Class'],
-                    elements['core.Attribute'],
-                    elements['core.Package'],
-                    elements['core.type']
+            model.values = [{
+                attribute: core_Element_name,
+                value: 'Core'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Model
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Container_elements,
+                value: [
+                    core
                 ]
-            });
+            }];
 
-            _.extend(elements['core.Element'], {
-                'package': elements['core'],
-                attributes: [
-                    elements['core.Element.name'],
-                    elements['core.Element.instanceOf']
-                ],
-                icon: '/coremodels/core/Element-icon.png',
-                proto: core.Element
-            });
-
-            _.extend(elements['core.Element.name'], {
-                type: elements['core.type.String'],
-                mandatory: true,
-                composition: true,
-                owner: elements['core.Element']
-            });
-
-            _.extend(elements['core.Element.instanceOf'], {
-                type: elements['core.Class'],
-                mandatory: true,
-                owner: elements['core.Element']
-            });
-
-            _.extend(elements['core.RootElement'], {
-                'package': elements['core'],
-                'extends': [elements['core.Element']],
-                attributes: [
-                    elements['core.RootElement.package']
-                ],
-                proto: core.RootElement
-            });
-
-            _.extend(elements['core.RootElement.package'], {
-                type: elements['core.Package'],
-                mandatory: true,
-                referencedBy: elements['core.Package.elements'],
-                owner: elements['core.RootElement']
-            });
-
-            _.extend(elements['core.Class'], {
-                'package': elements['core'],
-                'extends': [elements['core.RootElement']],
-                attributes: [
-                    elements['core.Class.abstract'],
-                    elements['core.Class.extends'],
-                    elements['core.Class.attributes'],
-                    elements['core.Class.icon']
-                ],
-                icon: '/coremodels/core/Class-icon.png',
-                proto: core.Class
-            });
-
-            _.extend(elements['core.Class.abstract'], {
-                type: elements['core.type.Boolean'],
-                composition: true,
-                owner: elements['core.Class']
-            });
-
-            _.extend(elements['core.Class.extends'], {
-                type: elements['core.Class'],
-                multiple: true,
-                owner: elements['core.Class']
-            });
-
-            _.extend(elements['core.Class.attributes'], {
-                type: elements['core.Attribute'],
-                composition: true,
-                multiple: true,
-                referencedBy: elements['core.Attribute.owner'],
-                owner: elements['core.Class']
-            });
-
-            _.extend(elements['core.Class.icon'], {
-                type: elements['core.type.String'],
-                readOnly: true,
-                owner: elements['core.Class']
-            });
-
-            _.extend(elements['core.Attribute'], {
-                'package': elements['core'],
-                'extends': [elements['core.Element']],
-                attributes: [
-                    elements['core.Attribute.type'],
-                    elements['core.Attribute.mandatory'],
-                    elements['core.Attribute.composition'],
-                    elements['core.Attribute.multiple'],
-                    elements['core.Attribute.readOnly'],
-                    elements['core.Attribute.referencedBy'],
-                    elements['core.Attribute.owner']
-                ],
-                icon: '/coremodels/core/Attribute-icon.png',
-                proto: core.Attribute
-            });
-
-            _.extend(elements['core.Attribute.type'], {
-                type: elements['core.Class'],
-                mandatory: true,
-                composition: false,
-                owner: elements['core.Attribute']
-            });
-
-            _.extend(elements['core.Attribute.mandatory'], {
-                type: elements['core.type.Boolean'],
-                composition: true,
-                owner: elements['core.Attribute']
-            });
-
-            _.extend(elements['core.Attribute.composition'], {
-                type: elements['core.type.Boolean'],
-                composition: true,
-                owner: elements['core.Attribute']
-            });
-
-            _.extend(elements['core.Attribute.multiple'], {
-                type: elements['core.type.Boolean'],
-                composition: true,
-                owner: elements['core.Attribute']
-            });
-
-            _.extend(elements['core.Attribute.readOnly'], {
-                type: elements['core.type.Boolean'],
-                composition: true,
-                owner: elements['core.Attribute']
-            });
-
-            _.extend(elements['core.Attribute.referencedBy'], {
-                type: elements['core.Attribute'],
-                owner: elements['core.Attribute']
-            });
-
-            _.extend(elements['core.Attribute.owner'], {
-                type: elements['core.Class'],
-                mandatory: true,
-                referencedBy: elements['core.Class.attributes'],
-                owner: elements['core.Attribute']
-            });
-
-            _.extend(elements['core.Package'], {
-                'package': elements['core'],
-                'extends': [elements['core.RootElement']],
-                attributes: [
-                    elements['core.Package.elements']
-                ],
-                icon: '/coremodels/core/Package-icon.png',
-                proto: core.Package
-            });
-
-            _.extend(elements['core.Package.elements'], {
-                type: elements['core.RootElement'],
-                composition: true,
-                multiple: true,
-                referencedBy: elements['core.RootElement.package'],
-                owner: elements['core.Package']
-            });
-
-            _.extend(elements['core.type'], {
-                'package': elements['core'],
-                elements: [
-                    elements['core.type.Type'],
-                    elements['core.type.String'],
-                    elements['core.type.Number'],
-                    elements['core.type.Boolean']
+            core.values = [{
+                attribute: core_Element_name,
+                value: 'core'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Package
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_RootElement_container,
+                value: model
+            }, {
+                attribute: core_Container_elements,
+                value: [
+                    core_Model,
+                    core_Element,
+                    core_Attribute,
+                    core_Class,
+                    core_RootElement,
+                    core_Package,
+                    core_Container,
+                    core_type
                 ]
+            }];
+
+            core_Model.values = [{
+                attribute: core_Element_name,
+                value: 'Model'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Class
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Class_abstract,
+                value: false
+            }, {
+                attribute: core_Class_extends,
+                value: [
+                    core_Container,
+                    core_Element
+                ]
+            }, {
+                attribute: core_RootElement_container,
+                value: core
+            }];
+
+            core_Container.values = [{
+                attribute: core_Element_name,
+                value: 'Container'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Class
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Class_abstract,
+                value: true
+            }, {
+                attribute: core_Class_attributes,
+                value: [
+                    core_Container_elements
+                ]
+            }, {
+                attribute: core_RootElement_container,
+                value: core
+            }];
+
+            core_Container_elements.values = [{
+                attribute: core_Element_name,
+                value: 'elements'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Attribute
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Attribute_type,
+                value: core_Element
+            }, {
+                attribute: core_Attribute_mandatory,
+                value: false
+            }, {
+                attribute: core_Attribute_composition,
+                value: true
+            }, {
+                attribute: core_Attribute_multiple,
+                value: true
+            }, {
+                attribute: core_Attribute_readOnly,
+                value: false
+            }, {
+                attribute: core_Attribute_owner,
+                value: core_Container
+            }, {
+                attribute: core_Attribute_referencedBy,
+                value: core_RootElement_container
+            }];
+
+            core_Element.values = [{
+                attribute: core_Element_name,
+                value: 'Element'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Class
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Class_abstract,
+                value: true
+            }, {
+                attribute: core_Class_attributes,
+                value: [
+                    core_Element_name,
+                    core_Element_instanceOf,
+                    core_Element_model
+                ]
+            }, {
+                attribute: core_RootElement_container,
+                value: core
+            }, {
+                attribute: core_Class_icon,
+                value: '/coremodels/core/Element-icon.png'
+            }];
+
+            core_Element_name.values = [{
+                attribute: core_Element_name,
+                value: 'name'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Attribute
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Attribute_type,
+                value: core_type_String
+            }, {
+                attribute: core_Attribute_mandatory,
+                value: true
+            }, {
+                attribute: core_Attribute_composition,
+                value: true
+            }, {
+                attribute: core_Attribute_multiple,
+                value: false
+            }, {
+                attribute: core_Attribute_readOnly,
+                value: false
+            }, {
+                attribute: core_Attribute_owner,
+                value: core_Element
+            }];
+
+            core_Element_instanceOf.values = [{
+                attribute: core_Element_name,
+                value: 'instanceOf'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Attribute
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Attribute_type,
+                value: core_Class
+            }, {
+                attribute: core_Attribute_mandatory,
+                value: true
+            }, {
+                attribute: core_Attribute_composition,
+                value: false
+            }, {
+                attribute: core_Attribute_multiple,
+                value: false
+            }, {
+                attribute: core_Attribute_readOnly,
+                value: true
+            }, {
+                attribute: core_Attribute_owner,
+                value: core_Element
+            }];
+
+            core_Element_model.values = [{
+                attribute: core_Element_name,
+                value: 'model'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Attribute
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Attribute_type,
+                value: core_Model
+            }, {
+                attribute: core_Attribute_mandatory,
+                value: true
+            }, {
+                attribute: core_Attribute_composition,
+                value: false
+            }, {
+                attribute: core_Attribute_multiple,
+                value: false
+            }, {
+                attribute: core_Attribute_readOnly,
+                value: true
+            }, {
+                attribute: core_Attribute_owner,
+                value: core_Element
+            }];
+
+            core_RootElement.values = [{
+                attribute: core_Element_name,
+                value: 'RootElement'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Class
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Class_abstract,
+                value: true
+            }, {
+                attribute: core_Class_attributes,
+                value: [
+                    core_RootElement_container
+                ]
+            }, {
+                attribute: core_RootElement_container,
+                value: core
+            }, {
+                attribute: core_Class_extends,
+                value: [
+                    core_Element
+                ]
+            }];
+
+            core_RootElement_container.values = [{
+                attribute: core_Element_name,
+                value: 'container'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Attribute
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Attribute_type,
+                value: core_Class
+            }, {
+                attribute: core_Attribute_mandatory,
+                value: true
+            }, {
+                attribute: core_Attribute_composition,
+                value: false
+            }, {
+                attribute: core_Attribute_multiple,
+                value: false
+            }, {
+                attribute: core_Attribute_readOnly,
+                value: false
+            }, {
+                attribute: core_Attribute_owner,
+                value: core_RootElement
+            }, {
+                attribute: core_Attribute_referencedBy,
+                value: core_Container_elements
+            }];
+
+            core_Class.values = [{
+                attribute: core_Element_name,
+                value: 'Class'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Class
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Class_abstract,
+                value: true
+            }, {
+                attribute: core_Class_attributes,
+                value: [
+                    core_Class_abstract,
+                    core_Class_attributes,
+                    core_Class_extends,
+                    core_Class_icon
+                ]
+            }, {
+                attribute: core_RootElement_container,
+                value: core
+            }, {
+                attribute: core_Class_extends,
+                value: [
+                    core_RootElement
+                ]
+            }, {
+                attribute: core_Class_icon,
+                value: '/coremodels/core/Class-icon.png'
+            }];
+
+            core_Class_abstract.values = [{
+                attribute: core_Element_name,
+                value: 'abstract'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Attribute
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Attribute_type,
+                value: core_type_Boolean
+            }, {
+                attribute: core_Attribute_mandatory,
+                value: true
+            }, {
+                attribute: core_Attribute_composition,
+                value: false
+            }, {
+                attribute: core_Attribute_multiple,
+                value: false
+            }, {
+                attribute: core_Attribute_readOnly,
+                value: false
+            }, {
+                attribute: core_Attribute_owner,
+                value: core_Class
+            }];
+
+            core_Class_extends.values = [{
+                attribute: core_Element_name,
+                value: 'extends'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Attribute
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Attribute_type,
+                value: core_type_Boolean
+            }, {
+                attribute: core_Attribute_mandatory,
+                value: true
+            }, {
+                attribute: core_Attribute_composition,
+                value: false
+            }, {
+                attribute: core_Attribute_multiple,
+                value: false
+            }, {
+                attribute: core_Attribute_readOnly,
+                value: false
+            }, {
+                attribute: core_Attribute_owner,
+                value: core_Class
+            }];
+
+            core_Class_attributes.values = [{
+                attribute: core_Element_name,
+                value: 'attributes'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Attribute
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Attribute_type,
+                value: core_Attribute
+            }, {
+                attribute: core_Attribute_mandatory,
+                value: false
+            }, {
+                attribute: core_Attribute_composition,
+                value: true
+            }, {
+                attribute: core_Attribute_multiple,
+                value: true
+            }, {
+                attribute: core_Attribute_readOnly,
+                value: false
+            }, {
+                attribute: core_Attribute_owner,
+                value: core_Class
+            }];
+
+            core_Class_icon.values = [{
+                attribute: core_Element_name,
+                value: 'icon'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Attribute
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Attribute_type,
+                value: core_type_String
+            }, {
+                attribute: core_Attribute_mandatory,
+                value: false
+            }, {
+                attribute: core_Attribute_composition,
+                value: true
+            }, {
+                attribute: core_Attribute_multiple,
+                value: false
+            }, {
+                attribute: core_Attribute_readOnly,
+                value: false
+            }, {
+                attribute: core_Attribute_owner,
+                value: core_Class
+            }];
+
+            core_Attribute.values = [{
+                attribute: core_Element_name,
+                value: 'Attribute'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Class
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Class_abstract,
+                value: false
+            }, {
+                attribute: core_Class_attributes,
+                value: [
+                    core_Attribute_composition,
+                    core_Attribute_mandatory,
+                    core_Attribute_multiple,
+                    core_Attribute_owner,
+                    core_Attribute_readOnly,
+                    core_Attribute_referencedBy,
+                    core_Attribute_type
+                ]
+            }, {
+                attribute: core_RootElement_container,
+                value: core
+            }, {
+                attribute: core_Class_extends,
+                value: [
+                    core_Element
+                ]
+            }, {
+                attribute: core_Class_icon,
+                value: '/coremodels/core/Attribute-icon.png'
+            }];
+
+            core_Attribute_type.values = [{
+                attribute: core_Element_name,
+                value: 'type'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Attribute
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Attribute_type,
+                value: core_Class
+            }, {
+                attribute: core_Attribute_mandatory,
+                value: true
+            }, {
+                attribute: core_Attribute_composition,
+                value: false
+            }, {
+                attribute: core_Attribute_multiple,
+                value: false
+            }, {
+                attribute: core_Attribute_readOnly,
+                value: false
+            }, {
+                attribute: core_Attribute_owner,
+                value: core_Attribute
+            }];
+
+            core_Attribute_mandatory.values = [{
+                attribute: core_Element_name,
+                value: 'mandatory'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Attribute
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Attribute_type,
+                value: core_type_Boolean
+            }, {
+                attribute: core_Attribute_mandatory,
+                value: true
+            }, {
+                attribute: core_Attribute_composition,
+                value: false
+            }, {
+                attribute: core_Attribute_multiple,
+                value: false
+            }, {
+                attribute: core_Attribute_readOnly,
+                value: false
+            }, {
+                attribute: core_Attribute_owner,
+                value: core_Attribute
+            }];
+
+            core_Attribute_composition.values = [{
+                attribute: core_Element_name,
+                value: 'composition'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Attribute
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Attribute_type,
+                value: core_type_Boolean
+            }, {
+                attribute: core_Attribute_mandatory,
+                value: true
+            }, {
+                attribute: core_Attribute_composition,
+                value: false
+            }, {
+                attribute: core_Attribute_multiple,
+                value: false
+            }, {
+                attribute: core_Attribute_readOnly,
+                value: false
+            }, {
+                attribute: core_Attribute_owner,
+                value: core_Attribute
+            }];
+
+            core_Attribute_multiple.values = [{
+                attribute: core_Element_name,
+                value: 'multiple'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Attribute
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Attribute_type,
+                value: core_type_Boolean
+            }, {
+                attribute: core_Attribute_mandatory,
+                value: true
+            }, {
+                attribute: core_Attribute_composition,
+                value: false
+            }, {
+                attribute: core_Attribute_multiple,
+                value: false
+            }, {
+                attribute: core_Attribute_readOnly,
+                value: false
+            }, {
+                attribute: core_Attribute_owner,
+                value: core_Attribute
+            }];
+
+            core_Attribute_readOnly.values = [{
+                attribute: core_Element_name,
+                value: 'readOnly'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Attribute
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Attribute_type,
+                value: core_type_Boolean
+            }, {
+                attribute: core_Attribute_mandatory,
+                value: true
+            }, {
+                attribute: core_Attribute_composition,
+                value: false
+            }, {
+                attribute: core_Attribute_multiple,
+                value: false
+            }, {
+                attribute: core_Attribute_readOnly,
+                value: false
+            }, {
+                attribute: core_Attribute_owner,
+                value: core_Attribute
+            }];
+
+            core_Attribute_referencedBy.values = [{
+                attribute: core_Element_name,
+                value: 'referencedBy'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Attribute
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Attribute_type,
+                value: core_Attribute
+            }, {
+                attribute: core_Attribute_mandatory,
+                value: false
+            }, {
+                attribute: core_Attribute_composition,
+                value: false
+            }, {
+                attribute: core_Attribute_multiple,
+                value: false
+            }, {
+                attribute: core_Attribute_readOnly,
+                value: false
+            }, {
+                attribute: core_Attribute_owner,
+                value: core_Attribute
+            }];
+
+            core_Attribute_owner.values = [{
+                attribute: core_Element_name,
+                value: 'owner'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Attribute
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Attribute_type,
+                value: core_Class
+            }, {
+                attribute: core_Attribute_mandatory,
+                value: true
+            }, {
+                attribute: core_Attribute_composition,
+                value: false
+            }, {
+                attribute: core_Attribute_multiple,
+                value: false
+            }, {
+                attribute: core_Attribute_readOnly,
+                value: false
+            }, {
+                attribute: core_Attribute_owner,
+                value: core_Attribute
+            }, {
+                attribute: core_Attribute_referencedBy,
+                value: core_Class_attributes
+            }];
+
+            core_Package.values = [{
+                attribute: core_Element_name,
+                value: 'Package'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Class
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Class_abstract,
+                value: false
+            }, {
+                attribute: core_RootElement_container,
+                value: core
+            }, {
+                attribute: core_Class_extends,
+                value: [
+                    core_RootElement,
+                    core_Container
+                ]
+            }, {
+                attribute: core_Class_icon,
+                value: '/coremodels/core/Package-icon.png'
+            }];
+
+            core_type.values = [{
+                attribute: core_Element_name,
+                value: 'type'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Package
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Container_elements,
+                value: [
+                    core_type_Type,
+                    core_type_Boolean,
+                    core_type_Number,
+                    core_type_String
+                ]
+            }, {
+                attribute: core_RootElement_container,
+                value: core
+            }];
+
+            core_type_Type.values = [{
+                attribute: core_Element_name,
+                value: 'Type'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_Class
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Class_abstract,
+                value: false
+            }, {
+                attribute: core_RootElement_container,
+                value: core_type
+            }, {
+                attribute: core_Class_extends,
+                value: [
+                    core_Class
+                ]
+            }];
+
+            core_type_String.values = [{
+                attribute: core_Element_name,
+                value: 'String'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_type_Type
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Class_abstract,
+                value: false
+            }, {
+                attribute: core_RootElement_container,
+                value: core_type
+            }];
+
+            core_type_Boolean.values = [{
+                attribute: core_Element_name,
+                value: 'Boolean'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_type_Type
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Class_abstract,
+                value: false
+            }, {
+                attribute: core_RootElement_container,
+                value: core_type
+            }];
+
+            core_type_Number.values = [{
+                attribute: core_Element_name,
+                value: 'Number'
+            }, {
+                attribute: core_Element_instanceOf,
+                value: core_type_Type
+            }, {
+                attribute: core_Element_model,
+                value: model
+            }, {
+                attribute: core_Class_abstract,
+                value: false
+            }, {
+                attribute: core_RootElement_container,
+                value: core_type
+            }];
+
+            Object.defineProperties(plugin.Model.prototype, {
+                elements: {
+                    get: function() {
+                        return this.get(core_Container_elements);
+                    },
+                    set: function(elements) {
+                        this.set(core_Container_elements, elements);
+                    }
+                }
             });
 
-            _.extend(elements['core.type.Type'], {
-                'abstract': true,
-                'package': elements['core.type'],
-                'extends': [elements['core.Class']],
-                proto: core.type.Type
+            Object.defineProperties(plugin.Package.prototype, {
+                elements: {
+                    get: function() {
+                        return this.get(core_Container_elements);
+                    },
+                    set: function(elements) {
+                        this.set(core_Container_elements, elements);
+                    }
+                }
             });
 
-            _.extend(elements['core.type.String'], {
-                'package': elements['core.type'],
-                proto: class String extends core.type.Type {}
+            Object.defineProperties(plugin.Element.prototype, {
+                name: {
+                    get: function() {
+                        return this.get(core_Element_name);
+                    },
+                    set: function(name) {
+                        this.set(core_Element_name, name);
+                    }
+                },
+                instanceOf: {
+                    get: function() {
+                        return this.get(core_Element_instanceOf);
+                    },
+                    set: function(instanceOf) {
+                        this.set(core_Element_instanceOf, instanceOf);
+                    }
+                },
+                model: {
+                    get: function() {
+                        return this.get(core_Element_model);
+                    },
+                    set: function(model) {
+                        this.set(core_Element_model, model);
+                    }
+                }
             });
 
-            _.extend(elements['core.type.Number'], {
-                'package': elements['core.type'],
-                proto: class Number extends core.type.Type {}
+            Object.defineProperties(plugin.RootElement.prototype, {
+                container: {
+                    get: function() {
+                        return this.get(core_RootElement_container);
+                    },
+                    set: function(container) {
+                        this.set(core_RootElement_container, container);
+                    }
+                }
             });
 
-            _.extend(elements['core.type.Boolean'], {
-                'package': elements['core.type'],
-                proto: class Boolean extends core.type.Type {}
+            Object.defineProperties(plugin.Class.prototype, {
+                abstract: {
+                    get: function() {
+                        return this.get(core_Class_abstract);
+                    },
+                    set: function(abstract) {
+                        this.set(core_Class_abstract, abstract);
+                    }
+                },
+                attributes: {
+                    get: function() {
+                        return this.get(core_Class_attributes);
+                    },
+                    set: function(attributes) {
+                        this.set(core_Class_attributes, attributes);
+                    }
+                },
+                extends: {
+                    get: function() {
+                        return this.get(core_Class_extends);
+                    },
+                    set: function(extendz) {
+                        this.set(core_Class_extends, extendz);
+                    }
+                },
+                icon: {
+                    get: function() {
+                        return this.get(core_Class_icon);
+                    },
+                    set: function(icon) {
+                        this.set(core_Class_icon, icon);
+                    }
+                }
             });
 
-            model.m3.elements.push(elements['core']);
+            Object.defineProperties(plugin.Attribute.prototype, {
+                composition: {
+                    get: function() {
+                        return this.get(core_Attribute_composition);
+                    },
+                    set: function(composition) {
+                        this.set(core_Attribute_composition, composition);
+                    }
+                },
+                mandatory: {
+                    get: function() {
+                        return this.get(core_Attribute_mandatory);
+                    },
+                    set: function(mandatory) {
+                        this.set(core_Attribute_mandatory, mandatory);
+                    }
+                },
+                multiple: {
+                    get: function() {
+                        return this.get(core_Attribute_multiple);
+                    },
+                    set: function(multiple) {
+                        this.set(core_Attribute_multiple, multiple);
+                    }
+                },
+                owner: {
+                    get: function() {
+                        return this.get(core_Attribute_owner);
+                    },
+                    set: function(owner) {
+                        this.set(core_Attribute_owner, owner);
+                    }
+                },
+                readOnly: {
+                    get: function() {
+                        return this.get(core_Attribute_readOnly);
+                    },
+                    set: function(readOnly) {
+                        this.set(core_Attribute_readOnly, readOnly);
+                    }
+                },
+                referencedBy: {
+                    get: function() {
+                        return this.get(core_Attribute_referencedBy);
+                    },
+                    set: function(referencedBy) {
+                        this.set(core_Attribute_referencedBy, referencedBy);
+                    }
+                },
+                type: {
+                    get: function() {
+                        return this.get(core_Attribute_type);
+                    },
+                    set: function(type) {
+                        this.set(core_Attribute_type, type);
+                    }
+                },
+            });
 
+            return model;
         };
 
         register(null, {
-            "metaburger.core": core
+            "metaburger.core": plugin
         });
     }
 });
