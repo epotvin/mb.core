@@ -8,7 +8,7 @@ define(function(require, exports, module) {
     function main(options, imports, register) {
         var Plugin = imports.Plugin;
         var core = imports['metaburger.core'];
-        var filePersister = imports['metaburger.persister'];
+        var persister = imports['metaburger.persister'];
 
         var model = new Plugin('epotvin', main.comsumes);
         window.model = model; 
@@ -47,7 +47,7 @@ define(function(require, exports, module) {
         function loaded(err) {
             if (err) return console.log(err);
             if (index < folders.length) {
-                return filePersister.loadFolder(model, folders[index++], loaded);
+                return persister.loadFolder(model, folders[index++], loaded);
             }
             emit('loaded');
         }

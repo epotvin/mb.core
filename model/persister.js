@@ -1,6 +1,6 @@
 /* global _*/
 define(function(require, exports, module) {
-    main.consumes = ["Plugin", "fs", "format.jsbeautify"];
+    main.consumes = ["Plugin", "fs", "format.jsbeautify", "metaburger.core"];
     main.provides = ["metaburger.persister"];
     return main;
 
@@ -8,121 +8,174 @@ define(function(require, exports, module) {
         var Plugin = imports.Plugin;
         var fs = imports.fs;
         var format = imports['format.jsbeautify'];
+        var core = imports['metaburger.core'];
 
         var persister = new Plugin('epotvin', main.consumes);
 
         var loading = false;
 
-        persister.loadFolder = function(model, folder, callback) {
+        persister.loadFolder = function(folder, models, callback) {
+
+            var model;
+
+            var tryMaps = [];
+            var lastTries = 0;
+
             loading = true;
-            loadPkg(folder.path, {
-                elements: []
-            }, function(err, graph) {
+            readDir(folder, function(err, dir) {
                 if (err) {
                     loading = false;
                     return callback(err);
                 }
-                var elements = {};
-                var root = [];
-                var updated = 0;
 
-                function mapElement(location, e) {
-                    var clazz = model.elements[e.instanceOf] || elements[e.instanceOf];
-                    if (!clazz) return;
+                mapModel(dir);
+                while (tryMaps.length > 0 && tryMaps.length != lastTries) {
+                    lastTries = tryMaps.length;
+                    
+                    var successes = [];
+                    _.each(tryMaps, function(tryMap) {
+                        if (tryMap()) {
+                            successes.push(tryMap);
+                        }
+                    });
+                    tryMaps = _.difference(tryMaps, successes);
+                }
+                callback(null, model);
+            });
 
-                    var fullName = (location ? location + '.' : '') + e.name;
-                    var element = elements[fullName];
+            function tryMap(func) {
+                if (!func()) {
+                    tryMaps.push(func);
+                }
+            }
 
-                    if (!element) {
+            function mapModel(dir) {
+                model = core.newModel();
+                var containerFile = dir.files['container.json'];
+                if (containerFile) {
+                    model.name = containerFile.name;
+                    model.version = containerFile.version;
+                    _.each(containerFile.dependencies, function(version, dependency) {
+                        model.dependencies.push(_.findWhere(models, {
+                            name: dependency
+                        }));
+                    });
+                }
 
-                        element = new clazz.proto(e.name, model);
-                        elements[fullName] = element;
-                        updated++;
+                model.elements = [];
 
-                        element.original = e;
+                _.each(dir.folders, function(folder, name) {
+                    folder.name = name;
+                    mapContainer(folder, model, function(container) {
+                        model.elements.push(container);
+                    });
+                });
 
-                        Object.defineProperty(element, 'dirty', {
-                            get: function() {
-                                return !loading && !_.isEqual(toJson(this), this.original);
-                            }
-                        });
-                        element.on('changed', function() {
-                            if (loading) return;
-                            if (element.isInstanceOf('core.Package')) updateFolder(element);
-                            else if (element.isInstanceOf('core.RootElement')) updateFile(element);
-                            element.original = toJson(element);
+                _.each(dir.files, function(file, name) {
+                    if (name === 'container.json') return;
+                    if (name.endsWith('.json')) {
+                        file.name = name.slice(0, -5);
+                        mapElement(file, model, function(element) {
+                            model.elements.push(element);
                         });
                     }
+                });
 
+            }
+
+            function mapElement(src, parent, callback) {
+                tryMap(function() {
+                    var clazz = model.element(src.instanceOf);
+                    if (!clazz) return false;
+                    var element = core.newInstance(model, clazz);
                     _.each(clazz.getAllAttributes(), function(attribute) {
+                        if (attribute.type.isInstanceOf(model.element('core.type.Type'))) {
+                            return element.set(attribute, src[attribute.name]);
+                        }
                         if (attribute.referencedBy && attribute.referencedBy.composition) {
-                            return element[attribute.name] = elements[location];
+                            return element.set(attribute, parent);
                         }
-
-                        if (attribute === model.elements['core.Element.name'] ||
-                            attribute === model.elements['core.Element.instanceOf']) return;
-
-                        if (attribute.type.is(model.elements['core.type.Boolean'])) {
-                            element[attribute.name] = (e[attribute.name] || false);
-                            return;
-                        }
-
-                        if (attribute.type.isInstanceOf(model.elements['core.type.Type'])) {
-                            return element[attribute.name] = e[attribute.name];
-                        }
-
-                        if (attribute.composition) {
-                            if (attribute.multiple) {
-                                element[attribute.name] = _.map(e[attribute.name], function(attr) {
-                                    return mapElement(fullName, attr);
-                                });
-                            }
-                            else {
-                                element[attribute.name] = mapElement(fullName, e[attribute.name]);
-                            }
+                        if (attribute.multiple) {
+                            var values = [];
+                            element.set(attribute, values);
+                            _.each(src[attribute.name], function(value) {
+                                if (attribute.composition) {
+                                    mapElement(value, element, function(subElement) {
+                                        values.push(subElement);
+                                    });
+                                }
+                                else {
+                                    tryMap(function() {
+                                        var subElement = model.element(value);
+                                        if (subElement) {
+                                            values.push(subElement);
+                                            return true;
+                                        }
+                                        return false;
+                                    });
+                                }
+                            });
                         }
                         else {
-                            if (attribute.multiple) {
-                                var values = _.map(e[attribute.name], function(name) {
-                                    return model.elements[name] || elements[name];
-                                });
-                                element[attribute.name] = values;
-                            }
-                            else {
-                                var value = model.elements[e[attribute.name]] || elements[e[attribute.name]];
-                                if (value) {
-                                    element[attribute.name] = value;
+                            if (src[attribute.name]) {
+                                if (attribute.composition) {
+                                    mapElement(src[attribute.name], element, function(value) {
+                                        element.set(attribute, value);
+                                    });
+                                }
+                                else {
+                                    tryMap(function() {
+                                        var subElement = model.element(src[attribute.name]);
+                                        if (subElement) {
+                                            element.set(attribute, subElement);
+                                            return true;
+                                        }
+                                        return false;
+                                    });
                                 }
                             }
                         }
-                        if (!element[attribute.name]) updated--;
                     });
+                    callback(element);
+                    return true;
+                });
+            }
 
-                    if (element.isInstanceOf(model.elements['core.Class'])) {
-                        element.initProto();
-                    }
+            function mapContainer(dir, parent, callback) {
+                var container = new core.Package();
+                container.name = dir.name;
+                container.model = model;
+                container.container = parent;
+                
+                var containerFile = dir.files['container.json'];
 
-                    return element;
+                if (containerFile) {
+                    container.instanceOf = containerFile.instanceOf;
+                }
+                else {
+                    container.instanceOf = model.element('core.Package');
                 }
 
-                _.each(graph.elements, function(e) {
-                    root.push(mapElement('', e));
+                container.elements = [];
+
+                _.each(dir.folders, function(folder, name) {
+                    folder.name = name;
+                    mapContainer(folder, container, function(element) {
+                        container.elements.push(element);
+                    });
                 });
 
-                while (updated > 0) {
-                    updated = 0;
-                    root = [];
-                    _.each(graph.elements, function(e) {
-                        root.push(mapElement('', e));
-                    });
-                }
-
-                folder.target.elements = folder.target.elements.concat(root);
-                _.extend(model.elements, elements);
-
-                loading = false;
-                callback();
-            });
+                _.each(dir.files, function(file, name) {
+                    if (name === 'container.json') return;
+                    if (name.endsWith('.json')) {
+                        file.name = name.slice(0, -5);
+                        mapElement(file, container, function(element) {
+                            container.elements.push(element);
+                        });
+                    }
+                });
+                callback(container);
+            }
 
             function updateFile(element) {
                 if (loading) return;
@@ -135,7 +188,7 @@ define(function(require, exports, module) {
                 if (element.original.name !== element.name) {
                     fs.rmfile(folder.path + element.folder + '/' + element.original.name + '.json', function(err) {
                         if (err) return console.log(err);
-                    });                    
+                    });
                 }
             }
 
@@ -174,58 +227,61 @@ define(function(require, exports, module) {
         };
 
         function loadPkg(path, pkg, callback) {
-            fs.readdir(path, function(err, files) {
+            readDir(path, function(err, dir) {
                 if (err) return callback(err);
-
-                var loadedElements = 0;
-
-                _.each(files, function(file) {
-                    if (file.name.substring(0, 1) === '.') {
-                        return done();
-                    }
-
-                    switch (file.mime) {
-                        case 'inode/directory':
-                            var subPkg = {
-                                name: file.name,
-                                instanceOf: 'core.Package',
-                                elements: []
-                            };
-                            pkg.elements.push(subPkg);
-                            loadPkg(path + '/' + file.name, subPkg, done);
-                            break;
-                        case 'application/json':
-                            fs.readFile(path + '/' + file.name, function(err, data) {
-                                if (err) return callback(err);
-                                var element = JSON.parse(data);
-                                element.name = file.name.slice(0, -5);
-                                pkg.elements.push(element);
-
-                                var iconPath = path + '/' + file.name.slice(0, -5) + '-icon.png';
-                                fs.exists(iconPath, function(exists) {
-                                    if (exists) {
-                                        element.icon = iconPath;
-                                    }
-                                    done();
-                                });
-                            });
-                            break;
-                        default:
-                            done();
-                    }
-
-                });
-
-                function done(err) {
-                    if (err) return callback(err);
-                    if (++loadedElements == files.length) {
-                        callback(null, pkg);
-                    }
-                }
 
             });
         }
 
+        function readDir(path, callback) {
+            var dir = {
+                files: {},
+                folders: {}
+            };
+
+            var readFiles = 0;
+            var totalFiles = 0;
+
+            fs.readdir(path, function(err, files) {
+                if (err) return callback(err);
+
+                totalFiles = files.length;
+
+                _.each(files, function(file) {
+
+                    if (file.name.substring(0, 1) === '.') return done();
+
+                    switch (file.mime) {
+                        case 'inode/directory':
+                            readDir(path + '/' + file.name, function(err, subdir) {
+                                if (err) return done(err);
+                                dir.folders[file.name] = subdir;
+                                done();
+                            });
+                            break;
+                        case 'application/json':
+                            fs.readFile(path + '/' + file.name, function(err, data) {
+                                if (err) return callback(err);
+                                dir.files[file.name] = JSON.parse(data);
+                                done();
+                            });
+                            break;
+                        default:
+                            dir.files[file.name] = path + '/' + file.name;
+                            done();
+                    }
+
+                });
+            });
+
+            function done(err) {
+                if (err) return callback(err);
+                if (++readFiles == totalFiles) {
+                    callback(null, dir);
+                }
+            }
+
+        }
         register(null, {
             "metaburger.persister": persister
         });

@@ -12,7 +12,7 @@
     "url": "https://github.com/epotvin/metaburger"
   },
   "plugins": {
-    "model/model": {},
+    "metaburger": {},
     "model/persister": {},
     "model/core": {},
     "browser/browser": {},

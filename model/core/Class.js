@@ -21,7 +21,7 @@ define(function(require, exports, module) {
 
         is(clazz) {
             if (typeof clazz === 'string') {
-                clazz = this.model.elements[clazz];
+                clazz = this.model.element(clazz);
             }
             if (this === clazz) {
                 return true;

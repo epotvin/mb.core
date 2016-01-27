@@ -3,8 +3,10 @@ define(function(require, exports, module) {
     "use strict";
     class Element {
         constructor(model) {
-            this.model = model;
             this.listeners = [];
+            this.values = [];
+            this.refs = [];
+            this.model = model;
         }
 
         get(attribute) {
@@ -14,9 +16,13 @@ define(function(require, exports, module) {
             var value = _.findWhere(this.values, {attribute : attribute});
             if (value) return value.value;
             if (attribute.multiple) return [];
+            if (attribute.type.is('core.Model')) return this.model;
         }
         
         set(attribute, newValue) {
+            if (typeof attribute === 'string') {
+                attribute = _.findWhere(this.instanceOf.getAllAttributes(), {name: attribute});
+            }
             var oldValue = this.values[attribute.name];
 
             if (Array.isArray(oldValue)) {
@@ -32,16 +38,6 @@ define(function(require, exports, module) {
                 newValue && newValue.addRef && newValue.addRef(this, attribute);
             }
             attribute.addRef(this, attribute);
-
-            if (attribute.type) {
-                if (attribute.type.is(this.model.elements['core.type.Number'])) {
-                    newValue = Number(newValue);
-                }
-                if (attribute.type.is(this.model.elements['core.type.Boolean'])) {
-                    newValue = newValue === 'true' || newValue === true;
-                }
-
-            }
 
             var value = _.findWhere(this.values, {attribute: attribute});
             if (value) {

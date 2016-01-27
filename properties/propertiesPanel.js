@@ -1,6 +1,6 @@
 /* global _ */
 define(function(require, exports, module) {
-    main.consumes = ["Panel", "Datagrid", "vfs", "metaburger.model"];
+    main.consumes = ["Panel", "Datagrid", "vfs", "metaburger"];
     main.provides = ["metaburger.propertiesPanel"];
     return main;
 
@@ -8,7 +8,7 @@ define(function(require, exports, module) {
         var Panel = imports.Panel;
         var Datagrid = imports.Datagrid;
         var vfs = imports.vfs;
-        var model = imports['metaburger.model'];
+        var metaburger = imports.metaburger;
 
         var plugin = new Panel("epotvin", main.consumes, {
             index: options.index || 100,
@@ -60,7 +60,7 @@ define(function(require, exports, module) {
                 grid.refresh(true);
             });
 
-            model.on('select', function(e) {
+            metaburger.on('select', function(e) {
                 loadElement(e.element);
             });
 
@@ -87,14 +87,14 @@ define(function(require, exports, module) {
                                 return element.getLabel(attribute);
                             },
                             clazz: attribute.type,
-                            items: attribute.multiple ? _.map(element[attribute.name], function(value) {
+                            items: attribute.multiple ? _.map(element.get(attribute), function(value) {
                                 return {
                                     label: '',
                                     element: value,
                                     getValue: function() {
                                         return value.fullName;
                                     },
-                                    attribute: model.elements['core.Element.fullName']
+                                    attribute: element.model.element('core.Element.fullName')
                                 };
                             }) : null
                         };

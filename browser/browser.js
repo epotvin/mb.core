@@ -1,6 +1,6 @@
 /* global _ */
 define(function(require, exports, module) {
-    main.consumes = ["Panel", "Tree", "vfs", "metaburger.model"];
+    main.consumes = ["Panel", "Tree", "vfs", "metaburger"];
     main.provides = ["metaburger.browser"];
     return main;
 
@@ -8,9 +8,9 @@ define(function(require, exports, module) {
         var Panel = imports.Panel;
         var Tree = imports.Tree;
         var vfs = imports.vfs;
-
-        var model = imports['metaburger.model'];
-
+        
+        var metaburger = imports.metaburger;
+        
         var plugin = new Panel("epotvin", main.consumes, {
             index: options.index || 100,
             caption: "Meta Browser",
@@ -37,12 +37,12 @@ define(function(require, exports, module) {
                 if (tree.selectedNodes[0]) {
                     element = tree.selectedNodes[0].element;
                 }
-                model.select(element);
+                metaburger.select(element);
             });
 
             reloadModel();
 
-            model.on('loaded', reloadModel);
+            metaburger.on('loaded', reloadModel);
         });
 
         plugin.on("unload", function() {
@@ -68,45 +68,8 @@ define(function(require, exports, module) {
                 $sorted: true
             });
 
-            //_.each(model.m3.get('elements'), function(element) {
-            //    root.children.push(getNodeFromElement(element));
-            //});
-            root.children.push(getNodeFromElement(model.m3));
-            
-            root.children.push({
-                label: "m2",
-                path: "!domains",
-                isOpen: true,
-                className: "heading",
-                isRoot: true,
-                isFolder: true,
-                status: "loaded",
-                map: {},
-                children: [],
-                noSelect: true,
-                $sorted: true
-            });
-
-            _.each(model.m2.elements, function(element) {
-                root.children.push(getNodeFromElement(element));
-            });
-
-            root.children.push({
-                label: "m1",
-                path: "!domains",
-                isOpen: true,
-                className: "heading",
-                isRoot: true,
-                isFolder: true,
-                status: "loaded",
-                map: {},
-                children: [],
-                noSelect: true,
-                $sorted: true
-            });
-
-            _.each(model.m1.elements, function(element) {
-                root.children.push(getNodeFromElement(element));
+            _.each(metaburger.models, function(model) {
+                root.children.push(getNodeFromElement(model));
             });
 
             tree.setRoot(root);

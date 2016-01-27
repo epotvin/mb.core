@@ -22,6 +22,11 @@ define(function(require, exports, module) {
                 });
                 return child;
             }, this);
+            
+            var i = 0;
+            while (! element && i < this.dependencies.length) {
+                element = this.dependencies[i++].element(fullName);
+            }
             return element;
         }
     }
