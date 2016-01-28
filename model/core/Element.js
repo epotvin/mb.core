@@ -10,12 +10,23 @@ define(function(require, exports, module) {
         }
 
         get(attribute) {
+            var self = this;
             if (typeof attribute === 'string') {
                 attribute = _.findWhere(this.instanceOf.getAllAttributes(), {name: attribute});
             }
             var value = _.findWhere(this.values, {attribute : attribute});
             if (value) return value.value;
-            if (attribute.multiple) return [];
+            if (attribute.multiple) {
+                value = [];
+                value.add = function(v) {
+                    value.push(v);
+                    if (! attribute.type.isInstanceOf('core.type.Type')) {
+                        v.addRef(self, attribute);
+                    }
+                };
+                this.set(attribute, value);
+                return value;
+            }
             if (attribute.type.is('core.Model')) return this.model;
         }
         
@@ -55,7 +66,7 @@ define(function(require, exports, module) {
             var parentAttribute = _.find(this.instanceOf.getAllAttributes(), function(attribute) {
                 return attribute.referencedBy && attribute.referencedBy.composition;
             }, this);
-            return parentAttribute && this[parentAttribute.name] && ! this[parentAttribute.name].isInstanceOf(this.model.element('core.Model')) ? this[parentAttribute.name].fullName + '.' + this.name : this.name;
+            return parentAttribute && this.get(parentAttribute) && ! this.get(parentAttribute).isInstanceOf(this.model.element('core.Model')) ? this.get(parentAttribute).fullName + '.' + this.name : this.name;
         }
 
         isInstanceOf(clazz) {
@@ -105,6 +116,16 @@ define(function(require, exports, module) {
             });
         }
 
+        getAllRefs(yet) {
+            yet = yet || [this];
+            var refs = _.reject(this.refs, function(ref) {return _.contains(yet, ref.element)});
+            yet = yet.concat(_.map(refs, function(ref) { return ref.element}));
+            _.each(refs, function(ref) {
+                refs = _.union(refs, ref.element.getAllRefs(yet));
+            });
+            return refs;
+        }
+        
         getListeners(eventName) {
             if (!this.listeners[eventName]) {
                 this.listeners[eventName] = [];

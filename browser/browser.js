@@ -8,9 +8,9 @@ define(function(require, exports, module) {
         var Panel = imports.Panel;
         var Tree = imports.Tree;
         var vfs = imports.vfs;
-        
+
         var metaburger = imports.metaburger;
-        
+
         var plugin = new Panel("epotvin", main.consumes, {
             index: options.index || 100,
             caption: "Meta Browser",
@@ -70,6 +70,10 @@ define(function(require, exports, module) {
 
             _.each(metaburger.models, function(model) {
                 root.children.push(getNodeFromElement(model));
+                model.on('changed', function(e) {
+                    tree.refresh(true);
+                });
+
             });
 
             tree.setRoot(root);
@@ -134,9 +138,6 @@ define(function(require, exports, module) {
         }
 
         function getNodeFromElement(element) {
-            element.on('changed', function(e) {
-                tree.refresh(true);
-            });
             return {
                 label: element.name,
                 isFolder: element.elements && element.elements.length > 0,

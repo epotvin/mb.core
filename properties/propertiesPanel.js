@@ -56,7 +56,7 @@ define(function(require, exports, module) {
             }, plugin);
 
             grid.on('afterRename', function(e) {
-                e.node.element[e.node.attribute.name] = e.value;
+                e.node.element.set(e.node.attribute, e.value);
                 grid.refresh(true);
             });
 

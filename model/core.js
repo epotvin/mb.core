@@ -121,6 +121,9 @@ define(function(require, exports, module) {
         }, {
             attribute: core_RootElement_container,
             value: core
+        }, {
+            attribute: core_Class_icon,
+            value: '/coremodels/core/Model-icon.png'
         }];
 
         core_Model_dependencies.values = [{
@@ -314,7 +317,7 @@ define(function(require, exports, module) {
             value: false
         }, {
             attribute: core_Attribute_readOnly,
-            value: true
+            value: false
         }, {
             attribute: core_Attribute_owner,
             value: core_Element
@@ -424,8 +427,8 @@ define(function(require, exports, module) {
             attribute: core_Class_attributes,
             value: [
                 core_Class_abstract,
-                core_Class_attributes,
                 core_Class_extends,
+                core_Class_attributes,
                 core_Class_icon
             ]
         }, {
@@ -572,13 +575,13 @@ define(function(require, exports, module) {
         }, {
             attribute: core_Class_attributes,
             value: [
+                core_Attribute_type,
                 core_Attribute_composition,
                 core_Attribute_mandatory,
                 core_Attribute_multiple,
                 core_Attribute_owner,
                 core_Attribute_readOnly,
-                core_Attribute_referencedBy,
-                core_Attribute_type
+                core_Attribute_referencedBy
             ]
         }, {
             attribute: core_RootElement_container,

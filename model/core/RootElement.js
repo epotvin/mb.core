@@ -14,7 +14,7 @@ define(function(require, exports, module) {
         }
         
         get folder() {
-            return '/' + this.package.fullName.replace(/\./g, '/');
+            return '/' + this.container.fullName.replace(/\./g, '/');
         }
     }
     

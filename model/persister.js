@@ -31,7 +31,7 @@ define(function(require, exports, module) {
                 mapModel(dir);
                 while (tryMaps.length > 0 && tryMaps.length != lastTries) {
                     lastTries = tryMaps.length;
-                    
+
                     var successes = [];
                     _.each(tryMaps, function(tryMap) {
                         if (tryMap()) {
@@ -40,6 +40,9 @@ define(function(require, exports, module) {
                     });
                     tryMaps = _.difference(tryMaps, successes);
                 }
+
+                updateOriginal(model);
+                loading = false;
                 callback(null, model);
             });
 
@@ -77,10 +80,12 @@ define(function(require, exports, module) {
                         file.name = name.slice(0, -5);
                         mapElement(file, model, function(element) {
                             model.elements.push(element);
+                            element.icon = dir.files[element.name + '-icon.png'];
                         });
                     }
                 });
 
+                model.folder = folder;
             }
 
             function mapElement(src, parent, callback) {
@@ -96,19 +101,17 @@ define(function(require, exports, module) {
                             return element.set(attribute, parent);
                         }
                         if (attribute.multiple) {
-                            var values = [];
-                            element.set(attribute, values);
                             _.each(src[attribute.name], function(value) {
                                 if (attribute.composition) {
                                     mapElement(value, element, function(subElement) {
-                                        values.push(subElement);
+                                        element.get(attribute).add(subElement);
                                     });
                                 }
                                 else {
                                     tryMap(function() {
                                         var subElement = model.element(value);
                                         if (subElement) {
-                                            values.push(subElement);
+                                            element.get(attribute).add(subElement);
                                             return true;
                                         }
                                         return false;
@@ -146,7 +149,7 @@ define(function(require, exports, module) {
                 container.name = dir.name;
                 container.model = model;
                 container.container = parent;
-                
+
                 var containerFile = dir.files['container.json'];
 
                 if (containerFile) {
@@ -156,12 +159,10 @@ define(function(require, exports, module) {
                     container.instanceOf = model.element('core.Package');
                 }
 
-                container.elements = [];
-
                 _.each(dir.folders, function(folder, name) {
                     folder.name = name;
                     mapContainer(folder, container, function(element) {
-                        container.elements.push(element);
+                        container.elements.add(element);
                     });
                 });
 
@@ -170,47 +171,71 @@ define(function(require, exports, module) {
                     if (name.endsWith('.json')) {
                         file.name = name.slice(0, -5);
                         mapElement(file, container, function(element) {
-                            container.elements.push(element);
+                            container.elements.add(element);
+                            element.icon = dir.files[element.name + '-icon.png'];
                         });
                     }
                 });
                 callback(container);
             }
 
-            function updateFile(element) {
-                if (loading) return;
-                var json = toJson(element);
-                if (element.isInstanceOf('core.RootElement')) delete json.name;
-                var content = format.formatString('json', JSON.stringify(json));
-                fs.writeFile(folder.path + element.filePath, content, null, function(err) {
-                    if (err) return console.log(err);
-                });
-                if (element.original.name !== element.name) {
-                    fs.rmfile(folder.path + element.folder + '/' + element.original.name + '.json', function(err) {
-                        if (err) return console.log(err);
-                    });
-                }
-            }
-
-            function updateFolder(element) {
-                if (loading) return;
+            function updateOriginal(element) {
                 element.original = toJson(element);
+                _.each(element.instanceOf.getAllAttributes(), function(attribute) {
+                    if (attribute.composition && !attribute.type.isInstanceOf('core.type.Type')) {
+                        if (attribute.multiple) {
+                            _.each(element.get(attribute), function(value) {
+                                updateOriginal(value);
+                            });
+                        }
+                        else {
+                            updateOriginal(element);
+                        }
+                    }
+                });
+
+                element.on('changed', function() {
+                    if (loading) return;
+
+                    var checked = [];
+
+                    function checkChanges(element) {
+                        checked.push(element);
+                        if (!_.isEqual(element.original, toJson(element))) {
+                            updateFile(element, element.original, function(err) {
+                                if (err) return console.log(err);
+                            });
+                            _.each(element.refs, function(ref) {
+                                if (!_.contains(checked, ref.element)) {
+                                    checkChanges(ref.element);
+                                }
+                            });
+                            element.original = toJson(element);
+                            return true;
+                        }
+                        return false;
+                    }
+
+                    if (checkChanges(element)) model.emit('changed');
+                });
             }
 
             function toJson(element) {
                 var json = {};
                 _.each(element.instanceOf.getAllAttributes(), function(attribute) {
-                    if (element[attribute.name] && attribute != model.elements['core.Class.icon']) {
+                    if (attribute.readOnly) return;
+                    if (attribute === element.model.element('core.Container.elements')) return;
+                    if (element.get(attribute) && attribute != model.element('core.Class.icon')) {
                         if (attribute.multiple) {
-                            if (element[attribute.name][0]) {
-                                json[attribute.name] = _.map(element[attribute.name], function(attr) {
-                                    return jsonValue(attribute, attr);
+                            if (element.get(attribute)[0]) {
+                                json[attribute.name] = _.map(element.get(attribute), function(value) {
+                                    return jsonValue(attribute, value);
                                 });
                             }
                         }
                         else {
                             if (!(attribute.referencedBy && attribute.referencedBy.composition)) {
-                                json[attribute.name] = jsonValue(attribute, element[attribute.name]);
+                                json[attribute.name] = jsonValue(attribute, element.get(attribute));
                             }
                         }
                     }
@@ -219,10 +244,34 @@ define(function(require, exports, module) {
             }
 
             function jsonValue(attribute, value) {
-                if (attribute.type.isInstanceOf(model.elements['core.type.Type'])) return value;
+                if (attribute.type.isInstanceOf(model.element('core.type.Type'))) return value;
                 if (attribute.composition) return toJson(value, attribute.type);
                 return value.fullName;
             }
+
+            function updateFile(element, original, callback) {
+                var json = toJson(element);
+                if (element.isInstanceOf('core.RootElement')) {
+                    delete json.name;
+                    var content = format.formatString('json', JSON.stringify(json));
+                    fs.writeFile(element.model.folder + element.filePath, content, null, function(err) {
+                        if (err) return callback(err);
+                        if (original.name !== element.name) {
+                            fs.rmfile(element.model.folder + element.folder + '/' + original.name + '.json', callback);
+                        }
+                    });
+                }
+                else {
+                    callback();
+                }
+            }
+
+            function updateFolder(element) {
+                if (loading) return;
+                element.original = toJson(element);
+            }
+
+
 
         };
 
@@ -248,9 +297,6 @@ define(function(require, exports, module) {
                 totalFiles = files.length;
 
                 _.each(files, function(file) {
-
-                    if (file.name.substring(0, 1) === '.') return done();
-
                     switch (file.mime) {
                         case 'inode/directory':
                             readDir(path + '/' + file.name, function(err, subdir) {
@@ -261,13 +307,15 @@ define(function(require, exports, module) {
                             break;
                         case 'application/json':
                             fs.readFile(path + '/' + file.name, function(err, data) {
-                                if (err) return callback(err);
+                                if (err) return done(err);
                                 dir.files[file.name] = JSON.parse(data);
                                 done();
                             });
                             break;
                         default:
-                            dir.files[file.name] = path + '/' + file.name;
+                            if (!file.name.substring(0, 1) === '.') {
+                                dir.files[file.name] = path + '/' + file.name;
+                            }
                             done();
                     }
 
