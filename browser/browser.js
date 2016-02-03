@@ -1,6 +1,6 @@
 /* global _ */
 define(function(require, exports, module) {
-    main.consumes = ["Panel", "Tree", "vfs", "metaburger"];
+    main.consumes = ["Panel", "Tree", "vfs", "Menu", "MenuItem", "metaburger"];
     main.provides = ["metaburger.browser"];
     return main;
 
@@ -8,6 +8,8 @@ define(function(require, exports, module) {
         var Panel = imports.Panel;
         var Tree = imports.Tree;
         var vfs = imports.vfs;
+        var Menu = imports.Menu;
+        var MenuItem = imports.MenuItem;
 
         var metaburger = imports.metaburger;
 
@@ -18,14 +20,16 @@ define(function(require, exports, module) {
             where: options.where || "left"
         });
 
-        var tree;
+        var container, tree, menu;
 
         plugin.on("load", function() {});
 
         plugin.on("draw", function(e) {
 
+            container = e.aml;
+
             tree = new Tree({
-                container: e.html,
+                container: container.$int,
                 getIconHTML: getIconHTML,
                 getCaptionHTML: getCaptionHTML,
                 getChildren: getChildren,
@@ -40,6 +44,20 @@ define(function(require, exports, module) {
                 metaburger.select(element);
             });
 
+            menu = new Menu({
+                items: [
+                    new MenuItem({
+                        caption: "Open..."
+                    })
+                ]
+            }, plugin);
+
+            container.$int.addEventListener("contextmenu", function(e) {
+                menu.show(e.x, e.y);
+                e.preventDefault();
+                return false;
+            }, false);
+
             reloadModel();
 
             metaburger.on('loaded', reloadModel);
@@ -47,6 +65,8 @@ define(function(require, exports, module) {
 
         plugin.on("unload", function() {
             tree.unload();
+            menu.unload();
+            container = null;
         });
 
         function reloadModel() {

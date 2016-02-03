@@ -14,8 +14,6 @@ define(function(require, exports, module) {
         var metaburger = new Plugin('epotvin', main.consumes);
         var emit = metaburger.getEmitter();
 
-        var selected = null;
-
         metaburger.on('load', function() {
             metaburger.models = [core.getModel()];
             loadWorkspace();
@@ -46,7 +44,7 @@ define(function(require, exports, module) {
         }
 
         metaburger.select = function(element) {
-            selected = element;
+            metaburger.selected = element;
             emit('select', {
                 element: element
             });
