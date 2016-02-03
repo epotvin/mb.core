@@ -17,7 +17,8 @@
     "model/core": {},
     "browser/browser": {},
     "properties/propertiesPanel": {},
-    "diagram/diagramEditor": {}
+    "diagram/diagramEditor": {},
+    "ui/menu": {}
   },
   "dependencies": {
     "jointjs": "0.9.7"

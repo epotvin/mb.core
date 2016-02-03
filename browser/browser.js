@@ -1,6 +1,6 @@
 /* global _ */
 define(function(require, exports, module) {
-    main.consumes = ["Panel", "Tree", "vfs", "Menu", "MenuItem", "metaburger"];
+    main.consumes = ["Panel", "Tree", "vfs", "Menu", "MenuItem", "metaburger", "metaburger.menu"];
     main.provides = ["metaburger.browser"];
     return main;
 
@@ -10,7 +10,8 @@ define(function(require, exports, module) {
         var vfs = imports.vfs;
         var Menu = imports.Menu;
         var MenuItem = imports.MenuItem;
-
+        var menu = imports['metaburger.menu'];
+        
         var metaburger = imports.metaburger;
 
         var plugin = new Panel("epotvin", main.consumes, {
@@ -20,7 +21,7 @@ define(function(require, exports, module) {
             where: options.where || "left"
         });
 
-        var container, tree, menu;
+        var container, tree;
 
         plugin.on("load", function() {});
 
@@ -44,16 +45,8 @@ define(function(require, exports, module) {
                 metaburger.select(element);
             });
 
-            menu = new Menu({
-                items: [
-                    new MenuItem({
-                        caption: "Open..."
-                    })
-                ]
-            }, plugin);
-
             container.$int.addEventListener("contextmenu", function(e) {
-                menu.show(e.x, e.y);
+                menu.getMenu(metaburger.selected).show(e.x, e.y);
                 e.preventDefault();
                 return false;
             }, false);
