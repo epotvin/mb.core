@@ -20,13 +20,26 @@ define(function(require, exports, module) {
             var menu = new Menu({
                 items: [
                     new MenuItem({
-                        caption: "Open..."
+                        caption: "Add...",
+                        submenu: addMenu(element)
                     })
                 ]
             }, plugin);
-            
+
             return menu;
         };
+
+        function addMenu(element) {
+            var menu = Menu({}, plugin);
+            _.each(element.instanceOf.getAllAttributes(), function(attribute) {
+                if (attribute.multiple && attribute.composition) {
+                    menu.append(new MenuItem({
+                        caption: attribute.type.name
+                    }));
+                }
+            });
+            return menu;
+        }
 
         plugin.on('unload', function() {});
 
