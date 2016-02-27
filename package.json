@@ -18,7 +18,8 @@
     "browser/browser": {},
     "properties/propertiesPanel": {},
     "diagram/diagramEditor": {},
-    "ui/menu": {}
+    "ui/menu": {},
+    "ui/addwizard": {}
   },
   "dependencies": {
     "jointjs": "0.9.7"

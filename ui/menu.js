@@ -1,6 +1,6 @@
 /* global _ */
 define(function(require, exports, module) {
-    main.consumes = ["Plugin", "Menu", "MenuItem", "metaburger"];
+    main.consumes = ["Plugin", "Menu", "MenuItem", "metaburger", "metaburger.addwizard"];
     main.provides = ["metaburger.menu"];
     return main;
 
@@ -8,7 +8,7 @@ define(function(require, exports, module) {
         var Plugin = imports.Plugin;
         var Menu = imports.Menu;
         var MenuItem = imports.MenuItem;
-        var metaburger = imports.metaburger;
+        var addwizard = imports['metaburger.addwizard'];
 
         var plugin = new Plugin('epotvin', main.consumes);
 
@@ -34,7 +34,10 @@ define(function(require, exports, module) {
             _.each(element.instanceOf.getAllAttributes(), function(attribute) {
                 if (attribute.multiple && attribute.composition) {
                     menu.append(new MenuItem({
-                        caption: attribute.type.name
+                        caption: attribute.type.name,
+                        onclick: function() {
+                            addwizard.add(element, attribute);
+                        }
                     }));
                 }
             });
